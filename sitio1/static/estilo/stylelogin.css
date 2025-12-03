@@ -1,0 +1,131 @@
+@import url('https://fonts.googleapis.com/css2?family=Raleway:wght@500&display=swap');
+
+body{
+    min-height: 100vh;
+    background-image: url(../Img/fondo.gif);
+    background-size: cover;
+    background-position:center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Poppins', sans-serif;
+}
+
+.container{
+    background-color: rgba(0, 0, 0, 0.75);
+    border: 2px solid white;
+    width: 90%;
+    max-width: 450px;
+    padding: 40px;
+    border-radius: 10px;
+    color: white;
+    box-shadow: 0 0 15px rgba(0,0,0,0.8);
+}
+
+.container h1{
+    text-align: center;
+    margin-bottom: 35px;
+    font-size: 28px;
+    font-weight: 600;
+    color: white;
+    text-shadow: 0 0 5px rgba(255,255,255,0.4);
+}
+
+form{
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+form a{
+    text-decoration: none;
+    color: white;
+}
+
+.input-box{
+    border: 2px solid gray;
+    display: flex;
+    align-items: center;
+    height: 60px;
+    border-radius: 40px;
+    padding: 20px;
+}
+
+.input-box input{
+    flex: 1;
+    background-color: transparent;
+    border: 0;
+    outline: 0;
+    font-size: 16px;
+    color: white;
+    min-width: 0;
+}
+
+.input-box input::placeholder{
+    color: #ccc;
+}
+
+.input-box input:focus{
+    background-color: rgba(255,255,255,0.2);
+    box-shadow: 0 0 5px rgba(255,255,255,0.3);
+}
+
+.remember-password {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 15px;
+    font-size: 14.5px;
+}
+
+.remember-password label{
+    display: flex;
+    align-items: center;
+}
+
+.remember-password input{
+    margin-right: 5px;
+}
+
+form a:hover{
+    text-decoration: underline;
+}
+
+.btn {
+  background-color: #1A3C54;
+  color: #ffffff;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.btn:hover {
+    background-color: #24506F;
+    box-shadow: 0 6px 10px rgba(0,0,0,0.25);
+    transform: translateY(-2px);
+}
+
+.register-link {
+    text-align: center;
+    margin-top: 15px;
+    font-size: 14px;
+}
+
+.register-link a{
+    color: #58a6ff;
+}
+
+.register-link a:hover{
+    color: #9fc9ff;
+    text-decoration: underline;
+}

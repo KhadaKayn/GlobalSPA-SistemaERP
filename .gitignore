@@ -14,7 +14,7 @@ venv/
 *.sqlite3
 /media/
 staticfiles/
-static/
+# OJO: ya no ignoramos static/ para poder subir tus CSS/JS/Img
 
 # Config sensible
 .env
