@@ -1,0 +1,43 @@
+{% extends 'sitio1/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <h3>🧾 Detalle de Venta #{{ venta.id }}</h3>
+    <p><strong>Fecha:</strong> {{ venta.fecha|date:"d/m/Y H:i" }}</p>
+    <p><strong>Usuario:</strong> {{ venta.usuario.username }}</p>
+    <p><strong>Medio de Pago:</strong> {{ venta.medio_pago }}</p>
+    <p><strong>Estado:</strong> {{ venta.estado }}</p>
+
+    <hr>
+    <h5>Productos Vendidos</h5>
+    <table class="table table-bordered">
+        <thead class="table-light">
+            <tr>
+                <th>Producto</th>
+                <th>Cantidad</th>
+                <th>Precio Unidad</th>
+                <th>Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in detalles %}
+            <tr>
+                <td>{{ item.producto.nombre }}</td>
+                <td>{{ item.cantidad }}</td>
+                <td>${{ item.precio_unidad }}</td>
+                <td>${{ item.subtotal }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <th colspan="3" class="text-end">Total</th>
+                <th>${{ venta.total }}</th>
+            </tr>
+        </tfoot>
+    </table>
+
+    <a href="{% url 'listar_ventas' %}" class="btn btn-secondary">⬅ Volver</a>
+</div>
+{% endblock %}

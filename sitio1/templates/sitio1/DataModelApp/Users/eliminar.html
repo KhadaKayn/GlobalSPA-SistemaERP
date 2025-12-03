@@ -1,0 +1,26 @@
+{% extends 'sitio1/base.html' %}
+
+{% block content %}
+<div class="container mt-5 text-white">
+    <div class="card bg-dark bg-opacity-75 p-4 shadow-lg text-center">
+        <h2 class="mb-3">⚠️ Confirmar eliminación</h2>
+        <h6>¿Seguro que deseas eliminar al usuario <strong>{{ usuario.nombre_usuario }}</strong>?</h6>
+        <h6 class="text-warning">Esta acción no se puede deshacer.</h6>
+
+        <form method="post" class="mt-4">
+            {% csrf_token %}
+            <a href="{% url 'lista_usuarios' %}" class="btn btn-secondary me-3">Cancelar</a>
+            <button type="submit" class="btn btn-danger">Eliminar Usuario</button>
+        </form>
+    </div>
+</div>
+
+<style>
+    .card {
+        max-width: 500px;
+        margin: auto;
+        border-radius: 15px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+</style>
+{% endblock %}

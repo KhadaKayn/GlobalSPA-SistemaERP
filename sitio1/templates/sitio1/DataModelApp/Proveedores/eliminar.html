@@ -1,0 +1,12 @@
+{% extends 'sitio1/base.html' %}
+{% block content %}
+
+<div class="confirm-box">
+    <h2>¿Estás seguro que deseas eliminar al proveedor "{{ proveedor.nombre }}"?</h2>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Eliminar</button>
+        <a href="{% url 'listar_proveedores' %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

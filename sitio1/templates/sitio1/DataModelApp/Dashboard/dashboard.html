@@ -1,0 +1,629 @@
+{% extends 'sitio1/base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>📊 Dashboard de Análisis</h2>
+    <div>
+        <button class="btn btn-outline-secondary btn-sm" onclick="actualizarDatos()">
+            🔄 Actualizar
+        </button>
+        <a href="{% url 'dashboard_ia' %}" class="btn btn-primary btn-sm">
+            🤖 Ver Predicciones IA
+        </a>
+    </div>
+</div>
+
+<!-- Tarjetas de métricas mejoradas -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card border-primary">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-subtitle text-muted mb-2">Total Ventas</h6>
+                        <h3 class="mb-0">${{ total_ventas|floatformat:0|intcomma }}</h3>
+                        {% if crecimiento_ventas %}
+                        <small class="{% if crecimiento_ventas > 0 %}text-success{% else %}text-danger{% endif %}">
+                            {% if crecimiento_ventas > 0 %}↗{% else %}↘{% endif %} 
+                            {{ crecimiento_ventas|floatformat:1 }}% vs mes anterior
+                        </small>
+                        {% endif %}
+                    </div>
+                    <div class="text-primary" style="font-size: 2.5rem;">💰</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card border-success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-subtitle text-muted mb-2">Transacciones</h6>
+                        <h3 class="mb-0">{{ cantidad_ventas|intcomma }}</h3>
+                        {% if ticket_promedio %}
+                        <small class="text-muted">
+                            Ticket: ${{ ticket_promedio|floatformat:0|intcomma }}
+                        </small>
+                        {% endif %}
+                    </div>
+                    <div class="text-success" style="font-size: 2.5rem;">🛒</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card border-info">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-subtitle text-muted mb-2">Productos Activos</h6>
+                        <h3 class="mb-0">{{ total_productos_activos }}</h3>
+                        <small class="text-muted">
+                            {{ productos_sin_stock }} sin stock
+                        </small>
+                    </div>
+                    <div class="text-info" style="font-size: 2.5rem;">📦</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card {% if productos_stock_bajo > 0 %}border-warning{% else %}border-secondary{% endif %}">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-subtitle text-muted mb-2">Alertas Stock</h6>
+                        <h3 class="mb-0 {% if productos_stock_bajo > 0 %}text-warning{% endif %}">
+                            {{ productos_stock_bajo }}
+                        </h3>
+                        <small class="{% if productos_stock_bajo > 0 %}text-warning{% else %}text-muted{% endif %}">
+                            {% if productos_stock_bajo > 0 %}Requiere atención{% else %}Todo OK{% endif %}
+                        </small>
+                    </div>
+                    <div class="{% if productos_stock_bajo > 0 %}text-warning{% else %}text-secondary{% endif %}" style="font-size: 2.5rem;">
+                        {% if productos_stock_bajo > 0 %}⚠️{% else %}✅{% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Nueva sección: KPIs Adicionales -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">📈 Indicadores Clave de Rendimiento (30 días)</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-2">
+                        <h6 class="text-muted small">Margen Promedio</h6>
+                        <h4 class="{% if margen_promedio > 40 %}text-success{% elif margen_promedio > 20 %}text-info{% else %}text-warning{% endif %}">
+                            {{ margen_promedio|floatformat:1 }}%
+                        </h4>
+                    </div>
+                    <div class="col-md-2">
+                        <h6 class="text-muted small">Productos Vendidos</h6>
+                        <h4>{{ productos_vendidos_mes }}</h4>
+                        <small class="text-muted">{{ porcentaje_productos_vendidos|floatformat:0 }}% del catálogo</small>
+                    </div>
+                    <div class="col-md-2">
+                        <h6 class="text-muted small">Rotación Promedio</h6>
+                        <h4>{{ rotacion_promedio|floatformat:1 }}</h4>
+                        <small class="text-muted">días</small>
+                    </div>
+                    <div class="col-md-2">
+                        <h6 class="text-muted small">Valor Inventario</h6>
+                        <h4>${{ valor_inventario_total|floatformat:0|intcomma }}</h4>
+                    </div>
+                    <div class="col-md-2">
+                        <h6 class="text-muted small">Mejor Día</h6>
+                        <h4>{{ mejor_dia_semana }}</h4>
+                        <small class="text-muted">{{ mejor_dia_ventas|floatformat:0|intcomma }}$</small>
+                    </div>
+                    <div class="col-md-2">
+                        <h6 class="text-muted small">Hora Peak</h6>
+                        <h4>{{ hora_pico }}:00</h4>
+                        <small class="text-muted">hrs</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Gráficos principales -->
+<div class="row">
+    <!-- Gráfico 1: Productos más vendidos con stock -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">🏆 Top Productos: Ventas vs Stock Actual</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="chartProductosStock"></canvas>
+            </div>
+            <div class="card-footer bg-light">
+                <small class="text-muted">
+                    💡 La línea naranja muestra el stock disponible
+                </small>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Gráfico 2: Ventas diarias con cantidad de transacciones -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">📅 Ventas Últimos 7 Días</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="chartVentasSemana"></canvas>
+            </div>
+            <div class="card-footer bg-light">
+                <small class="text-muted">
+                    💡 Barras = ingresos, Línea = cantidad de ventas
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Gráfico 3: Rentabilidad -->
+    <div class="col-md-8 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">💵 Rentabilidad por Producto (Top 5)</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="chartRentabilidad"></canvas>
+            </div>
+            <div class="card-footer bg-light">
+                <small class="text-muted">
+                    💡 Barras apiladas: Rojo = Costo, Verde = Ganancia neta
+                </small>
+            </div>
+        </div>
+    </div>
+    
+    <!-- NUEVO: Gráfico 4 - Distribución de Ventas por Categoría -->
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">🎯 Ventas por Categoría</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="chartCategorias"></canvas>
+            </div>
+            <div class="card-footer bg-light">
+                <small class="text-muted">
+                    💡 Distribución de ingresos por categoría
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Nueva fila: Análisis de tendencias y alertas -->
+<div class="row">
+    <!-- NUEVO: Tendencia de ventas mensual -->
+    <div class="col-md-8 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">📈 Tendencia de Ventas (Últimos 30 días)</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="chartTendencia"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- NUEVO: Top categorías con alertas -->
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">🔔 Alertas y Recomendaciones</h5>
+            </div>
+            <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                {% if productos_criticos %}
+                <h6 class="text-danger mb-3">⚠️ Stock Crítico ({{ productos_criticos|length }})</h6>
+                <ul class="list-unstyled">
+                    {% for prod in productos_criticos|slice:":5" %}
+                    <li class="mb-2 pb-2 border-bottom">
+                        <strong>{{ prod.nombre }}</strong><br>
+                        <small class="text-danger">Stock: {{ prod.stock_actual }} (mín: {{ prod.stock_minimo }})</small>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+                
+                {% if productos_sin_movimiento %}
+                <h6 class="text-warning mt-3 mb-3">💤 Sin Movimiento ({{ productos_sin_movimiento|length }})</h6>
+                <ul class="list-unstyled">
+                    {% for prod in productos_sin_movimiento|slice:":5" %}
+                    <li class="mb-2 pb-2 border-bottom">
+                        <strong>{{ prod.nombre }}</strong><br>
+                        <small class="text-muted">{{ prod.dias_sin_venta }} días sin vender</small>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+                
+                {% if productos_mas_rentables %}
+                <h6 class="text-success mt-3 mb-3">⭐ Más Rentables</h6>
+                <ul class="list-unstyled">
+                    {% for prod in productos_mas_rentables|slice:":3" %}
+                    <li class="mb-2 pb-2 border-bottom">
+                        <strong>{{ prod.nombre }}</strong><br>
+                        <small class="text-success">Margen: {{ prod.margen|floatformat:0 }}%</small>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- NUEVO: Tabla de resumen por categoría -->
+<div class="row">
+    <div class="col-md-12 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">📊 Resumen por Categoría</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover table-sm">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Categoría</th>
+                                <th class="text-end">Productos</th>
+                                <th class="text-end">Unidades Vendidas</th>
+                                <th class="text-end">Ingresos</th>
+                                <th class="text-end">% Total</th>
+                                <th class="text-end">Margen Prom.</th>
+                                <th>Tendencia</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cat in resumen_categorias %}
+                            <tr>
+                                <td><strong>{{ cat.nombre }}</strong></td>
+                                <td class="text-end">{{ cat.cantidad_productos }}</td>
+                                <td class="text-end">{{ cat.unidades_vendidas }}</td>
+                                <td class="text-end">${{ cat.ingresos|floatformat:0|intcomma }}</td>
+                                <td class="text-end">{{ cat.porcentaje|floatformat:1 }}%</td>
+                                <td class="text-end">
+                                    <span class="badge bg-{% if cat.margen > 40 %}success{% elif cat.margen > 20 %}info{% else %}warning{% endif %}">
+                                        {{ cat.margen|floatformat:0 }}%
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if cat.tendencia > 0 %}
+                                        <span class="text-success">↗ {{ cat.tendencia|floatformat:0 }}%</span>
+                                    {% elif cat.tendencia < 0 %}
+                                        <span class="text-danger">↘ {{ cat.tendencia|floatformat:0 }}%</span>
+                                    {% else %}
+                                        <span class="text-muted">→ 0%</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Data scripts (hidden) -->
+{{ labels_productos|json_script:"labels-productos" }}
+{{ data_ventas_productos|json_script:"data-ventas-productos" }}
+{{ data_stock_productos|json_script:"data-stock-productos" }}
+
+{{ labels_ventas|json_script:"labels-ventas" }}
+{{ data_monto_ventas|json_script:"data-monto-ventas" }}
+{{ data_cant_ventas|json_script:"data-cant-ventas" }}
+
+{{ labels_rentabilidad|json_script:"labels-rentabilidad" }}
+{{ data_costos|json_script:"data-costos" }}
+{{ data_ganancias|json_script:"data-ganancias" }}
+
+{{ labels_categorias|json_script:"labels-categorias" }}
+{{ data_categorias|json_script:"data-categorias" }}
+
+{{ labels_tendencia|json_script:"labels-tendencia" }}
+{{ data_tendencia|json_script:"data-tendencia" }}
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // ==========================================
+    // GRÁFICO 1: Productos (Barras + Línea Stock)
+    // ==========================================
+    const labelsProductos = JSON.parse(document.getElementById('labels-productos').textContent);
+    const dataVentas = JSON.parse(document.getElementById('data-ventas-productos').textContent);
+    const dataStock = JSON.parse(document.getElementById('data-stock-productos').textContent);
+    
+    new Chart(document.getElementById("chartProductosStock"), {
+        type: "bar",
+        data: {
+            labels: labelsProductos,
+            datasets: [
+                {
+                    type: 'bar',
+                    label: "Unidades vendidas",
+                    data: dataVentas,
+                    backgroundColor: "rgba(54, 162, 235, 0.6)",
+                    borderColor: "rgba(54, 162, 235, 1)",
+                    borderWidth: 1,
+                    yAxisID: 'y'
+                },
+                {
+                    type: 'line',
+                    label: "Stock actual",
+                    data: dataStock,
+                    borderColor: "rgba(255, 159, 64, 1)",
+                    backgroundColor: "rgba(255, 159, 64, 0.2)",
+                    borderWidth: 3,
+                    fill: false,
+                    tension: 0.3,
+                    yAxisID: 'y'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            scales: {
+                y: { 
+                    beginAtZero: true,
+                    position: 'left',
+                    title: {
+                        display: true,
+                        text: 'Unidades'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                }
+            }
+        }
+    });
+
+    // ==========================================
+    // GRÁFICO 2: Ventas diarias (Monto + Transacciones)
+    // ==========================================
+    const labelsVentas = JSON.parse(document.getElementById('labels-ventas').textContent);
+    const dataMonto = JSON.parse(document.getElementById('data-monto-ventas').textContent);
+    const dataCantidad = JSON.parse(document.getElementById('data-cant-ventas').textContent);
+    
+    new Chart(document.getElementById("chartVentasSemana"), {
+        type: "bar",
+        data: {
+            labels: labelsVentas,
+            datasets: [
+                {
+                    type: 'bar',
+                    label: "Monto ($)",
+                    data: dataMonto,
+                    backgroundColor: "rgba(75, 192, 192, 0.6)",
+                    borderColor: "rgba(75, 192, 192, 1)",
+                    borderWidth: 1,
+                    yAxisID: 'y'
+                },
+                {
+                    type: 'line',
+                    label: "Cantidad ventas",
+                    data: dataCantidad,
+                    borderColor: "rgba(255, 99, 132, 1)",
+                    backgroundColor: "rgba(255, 99, 132, 0.2)",
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.3,
+                    yAxisID: 'y1'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    position: 'left',
+                    title: {
+                        display: true,
+                        text: 'Monto ($)'
+                    }
+                },
+                y1: {
+                    beginAtZero: true,
+                    position: 'right',
+                    title: {
+                        display: true,
+                        text: 'Cantidad'
+                    },
+                    grid: {
+                        drawOnChartArea: false
+                    }
+                }
+            }
+        }
+    });
+
+    // ==========================================
+    // GRÁFICO 3: Rentabilidad (Barras apiladas)
+    // ==========================================
+    const labelsRentabilidad = JSON.parse(document.getElementById('labels-rentabilidad').textContent);
+    const dataCostos = JSON.parse(document.getElementById('data-costos').textContent);
+    const dataGanancias = JSON.parse(document.getElementById('data-ganancias').textContent);
+    
+    new Chart(document.getElementById("chartRentabilidad"), {
+        type: "bar",
+        data: {
+            labels: labelsRentabilidad,
+            datasets: [
+                {
+                    label: "Costo",
+                    data: dataCostos,
+                    backgroundColor: "rgba(255, 99, 132, 0.6)",
+                    borderColor: "rgba(255, 99, 132, 1)",
+                    borderWidth: 1
+                },
+                {
+                    label: "Ganancia",
+                    data: dataGanancias,
+                    backgroundColor: "rgba(75, 192, 192, 0.6)",
+                    borderColor: "rgba(75, 192, 192, 1)",
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            scales: {
+                x: {
+                    stacked: true
+                },
+                y: {
+                    stacked: true,
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Monto ($)'
+                    }
+                }
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        footer: function(tooltipItems) {
+                            let total = 0;
+                            tooltipItems.forEach(item => total += item.parsed.y);
+                            return 'Total: $' + total.toFixed(0);
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // ==========================================
+    // GRÁFICO 4: Distribución por Categoría (Doughnut)
+    // ==========================================
+    const labelsCategorias = JSON.parse(document.getElementById('labels-categorias').textContent);
+    const dataCategorias = JSON.parse(document.getElementById('data-categorias').textContent);
+    
+    new Chart(document.getElementById("chartCategorias"), {
+        type: "doughnut",
+        data: {
+            labels: labelsCategorias,
+            datasets: [{
+                data: dataCategorias,
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.7)',
+                    'rgba(54, 162, 235, 0.7)',
+                    'rgba(255, 206, 86, 0.7)',
+                    'rgba(75, 192, 192, 0.7)',
+                    'rgba(153, 102, 255, 0.7)',
+                    'rgba(255, 159, 64, 0.7)'
+                ],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.parsed || 0;
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = ((value / total) * 100).toFixed(1);
+                            return `${label}: $${value.toFixed(0)} (${percentage}%)`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // ==========================================
+    // GRÁFICO 5: Tendencia mensual (Área)
+    // ==========================================
+    const labelsTendencia = JSON.parse(document.getElementById('labels-tendencia').textContent);
+    const dataTendencia = JSON.parse(document.getElementById('data-tendencia').textContent);
+    
+    new Chart(document.getElementById("chartTendencia"), {
+        type: "line",
+        data: {
+            labels: labelsTendencia,
+            datasets: [{
+                label: "Ventas Diarias",
+                data: dataTendencia,
+                fill: true,
+                backgroundColor: "rgba(54, 162, 235, 0.2)",
+                borderColor: "rgba(54, 162, 235, 1)",
+                borderWidth: 2,
+                tension: 0.4,
+                pointRadius: 3,
+                pointBackgroundColor: "rgba(54, 162, 235, 1)"
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Ventas ($)'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Fecha'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+});
+
+function actualizarDatos() {
+    location.reload();
+}
+</script>
+
+{% endblock %}

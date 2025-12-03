@@ -1,0 +1,28 @@
+# Python
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+*.log
+
+# Entornos virtuales
+env/
+venv/
+.venv/
+
+# Django
+*.sqlite3
+/media/
+staticfiles/
+static/
+
+# Config sensible
+.env
+*.env
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+.DS_Store
+

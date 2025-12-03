@@ -1,0 +1,314 @@
+{% extends 'sitio1/base.html' %}
+{% load static %}
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'estilo/productos.css' %}?v=5">
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    h1 {
+        margin-bottom: 20px;
+        text-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        text-align: center;
+        color: #fff;
+        font-size: 2.5rem;
+        font-weight: 700;
+        padding-top: 40px;
+    }
+
+    .subtitle {
+        text-align: center;
+        color: rgba(255, 255, 255, 0.9);
+        margin-bottom: 50px;
+        font-size: 1.1rem;
+        font-weight: 300;
+    }
+
+    .analytics-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 40px;
+        margin-top: 20px;
+        padding: 0 20px;
+    }
+
+    .analytics-card {
+        background: linear-gradient(145deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 40px 30px;
+        width: 350px;
+        text-align: center;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .analytics-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+        transition: left 0.5s;
+    }
+
+    .analytics-card:hover::before {
+        left: 100%;
+    }
+
+    .analytics-card:hover {
+        transform: translateY(-10px) scale(1.02);
+        border-color: rgba(255, 255, 255, 0.5);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .card-icon {
+        font-size: 4rem;
+        margin-bottom: 20px;
+        display: inline-block;
+        animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+    }
+
+    .analytics-card.dashboard .card-icon {
+        animation-delay: 0s;
+    }
+
+    .analytics-card.ai .card-icon {
+        animation-delay: 0.5s;
+    }
+
+    .analytics-card h3 {
+        margin-bottom: 15px;
+        color: #fff;
+        font-size: 1.5rem;
+        font-weight: 600;
+    }
+
+    .analytics-card h6 {
+        color: rgba(255, 255, 255, 0.85);
+        min-height: 70px;
+        line-height: 1.6;
+        font-weight: 400;
+        font-size: 0.95rem;
+    }
+
+    .feature-list {
+        list-style: none;
+        padding: 15px 0;
+        margin: 15px 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.2);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .feature-list li {
+        color: rgba(255, 255, 255, 0.9);
+        padding: 8px 0;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .feature-list li::before {
+        content: '✓';
+        color: #00ff88;
+        font-weight: bold;
+        font-size: 1.2rem;
+    }
+
+    .btn-analytics {
+        text-decoration: none;
+        color: #fff;
+        font-weight: 600;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 14px 32px;
+        border-radius: 50px;
+        display: inline-block;
+        transition: all 0.3s ease;
+        box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        border: none;
+        margin-top: 15px;
+        font-size: 1rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-analytics::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        transform: translate(-50%, -50%);
+        transition: width 0.6s, height 0.6s;
+    }
+
+    .btn-analytics:hover::before {
+        width: 300px;
+        height: 300px;
+    }
+
+    .btn-analytics span {
+        position: relative;
+        z-index: 1;
+    }
+
+    .analytics-card.dashboard .btn-analytics {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        box-shadow: 0 10px 25px rgba(245, 87, 108, 0.4);
+    }
+
+    .analytics-card.ai .btn-analytics {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        box-shadow: 0 10px 25px rgba(79, 172, 254, 0.4);
+    }
+
+    .btn-analytics:hover {
+        transform: scale(1.05);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+    }
+
+    .analytics-card.dashboard:hover {
+        background: linear-gradient(145deg, rgba(240, 147, 251, 0.2), rgba(245, 87, 108, 0.2));
+    }
+
+    .analytics-card.ai:hover {
+        background: linear-gradient(145deg, rgba(79, 172, 254, 0.2), rgba(0, 242, 254, 0.2));
+    }
+
+    .badge {
+        display: inline-block;
+        background: rgba(0, 255, 136, 0.2);
+        color: #00ff88;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-bottom: 15px;
+        border: 1px solid rgba(0, 255, 136, 0.4);
+    }
+
+    .badge.new {
+        background: rgba(255, 215, 0, 0.2);
+        color: #ffd700;
+        border-color: rgba(255, 215, 0, 0.4);
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.7; }
+    }
+
+    .actions {
+        text-align: center;
+        margin-top: 60px;
+        margin-bottom: 40px;
+    }
+
+    .btn-back {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        color: white;
+        padding: 12px 30px;
+        border-radius: 50px;
+        text-decoration: none;
+        transition: all 0.3s;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        font-weight: 500;
+    }
+
+    .btn-back:hover {
+        background: rgba(255, 255, 255, 0.9);
+        color: #667eea;
+        border-color: rgba(255, 255, 255, 0.9);
+        transform: scale(1.05);
+    }
+
+    @media (max-width: 768px) {
+        h1 {
+            font-size: 2rem;
+        }
+
+        .analytics-container {
+            gap: 30px;
+        }
+
+        .analytics-card {
+            width: 100%;
+            max-width: 350px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<h1>📊 Analytics & Inteligencia Artificial</h1>
+<p class="subtitle">Visualiza datos y predice tendencias con el poder del análisis avanzado</p>
+
+<div class="analytics-container">
+
+  <div class="analytics-card dashboard">
+    <span class="badge">Analisis</span>
+    <div class="card-icon">📈</div>
+    <h3>Dashboard de Análisis</h3>
+    <h6>Visualiza métricas clave, reportes interactivos y análisis de rendimiento en tiempo real.</h6>
+    
+    <ul class="feature-list">
+        <li>Gráficos interactivos</li>
+        <li>Reportes personalizados</li>
+        <li>Métricas en tiempo real</li>
+    </ul>
+    
+    <a href="{% url 'dashboard' %}" class="btn-analytics">
+        <span>Explorar Dashboard →</span>
+    </a>
+  </div>
+
+  <div class="analytics-card ai">
+    <span class="badge new">IA ✨</span>
+    <div class="card-icon">🤖</div>
+    <h3>IA - Predicciones</h3>
+    <h6>Utiliza inteligencia artificial para predecir ventas, demanda y tendencias futuras del negocio.</h6>
+    
+    <ul class="feature-list">
+        <li>Predicción de ventas</li>
+        <li>Análisis de tendencias</li>
+        <li>Recomendaciones inteligentes</li>
+    </ul>
+    
+    <a href="{% url 'dashboard_ia' %}" class="btn-analytics">
+        <span>Ir a Predicciones →</span>
+    </a>
+  </div>
+
+</div>
+
+<div class="actions">
+  <a href="{% url 'gestion' %}" class="btn-back">← Volver al Menú Principal</a>
+</div>
+{% endblock %}

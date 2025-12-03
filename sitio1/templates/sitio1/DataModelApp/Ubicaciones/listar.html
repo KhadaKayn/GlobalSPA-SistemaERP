@@ -1,0 +1,53 @@
+{% extends 'sitio1/base.html' %}
+{% load static %}
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'estilo/otrastablas.css' %}?v=5">
+{% endblock %}
+
+{% block content %}
+<h1>Gestión de Ubicaciones</h1>
+
+<div class="table-container">
+  <table class="productos-table">
+    <thead>
+      <tr>
+        <th>Calle</th>
+        <th>Número</th>
+        <th>Comuna</th>
+        <th>Región</th>
+        <th>Descripción</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {% for ubicacion in ubicaciones %}
+      <tr>
+        <td>{{ ubicacion.calle|default:"—" }}</td>
+        <td>{{ ubicacion.numero|default:"—" }}</td>
+        <td>{{ ubicacion.comuna|default:"—" }}</td>
+        <td>{{ ubicacion.region|default:"—" }}</td>
+        <td>{{ ubicacion.descripcion|default:"—" }}</td>
+        <td>
+          <a href="{% url 'editar_ubicacion' ubicacion.id %}" class="btn btn-primary">Editar</a>
+          <form action="{% url 'eliminar_ubicacion' ubicacion.id %}" method="post" class="d-inline">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger" onclick="return confirm('¿Eliminar esta ubicación?')">Eliminar</button>
+          </form>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="6" style="text-align:center;">No hay ubicaciones registradas.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="actions">
+  <a href="{% url 'crear_ubicacion' %}" class="btn btn-add">Agregar nueva ubicación</a>
+  <a href="{% url 'gestion' %}" class="btn btn-back">Volver</a>
+</div>
+{% endblock %}

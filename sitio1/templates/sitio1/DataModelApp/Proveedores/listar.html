@@ -1,0 +1,53 @@
+{% extends 'sitio1/base.html' %}
+{% load static %}
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'estilo/otrastablas.css' %}?v=5">
+{% endblock %}
+
+{% block content %}
+<h1>Gestión de Proveedores</h1>
+
+<div class="table-container">
+  <table class="productos-table">
+    <thead>
+      <tr>
+        <th>Nombre</th>
+        <th>Teléfono</th>
+        <th>Correo</th>
+        <th>Dirección</th>
+        <th>Observaciones</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {% for p in proveedores %}
+      <tr>
+        <td>{{ p.nombre|default:"—" }}</td>
+        <td>{{ p.telefono|default:"—" }}</td>
+        <td>{{ p.correo|default:"—" }}</td>
+        <td>{{ p.direccion|default:"—" }}</td>
+        <td>{{ p.observaciones|default:"—" }}</td>
+        <td>
+          <a href="{% url 'editar_proveedor' p.id %}" class="btn btn-primary">Editar</a>
+          <form action="{% url 'eliminar_proveedor' p.id %}" method="post" class="d-inline">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger" onclick="return confirm('¿Eliminar este proveedor?')">Eliminar</button>
+          </form>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="6" style="text-align:center;">No hay proveedores registrados.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="actions">
+  <a href="{% url 'crear_proveedor' %}" class="btn btn-add">Agregar nuevo proveedor</a>
+  <a href="{% url 'gestion' %}" class="btn btn-back">Volver</a>
+</div>
+{% endblock %}

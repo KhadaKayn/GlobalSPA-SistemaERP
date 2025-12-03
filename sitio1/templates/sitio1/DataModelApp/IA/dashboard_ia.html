@@ -1,0 +1,316 @@
+{% extends 'sitio1/base.html' %}
+{% load humanize %}
+{% load static %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>🤖 Inteligencia Artificial - Predicciones</h2>
+    <div>
+        <!-- BOTÓN NUEVO: Generar Orden de Compra -->
+        {% if alertas_ia %}
+        <a href="{% url 'generar_orden_compra_ia' %}" class="btn btn-danger me-2">
+            📦 Generar Orden de Compra
+        </a>
+        {% endif %}
+        
+        <a href="{% url 'lista_ordenes_compra' %}" class="btn btn-outline-primary me-2">
+            📋 Ver Órdenes
+        </a>
+        
+        <a href="?evaluar=1" class="btn btn-info me-2">
+            📊 Evaluar Modelo
+        </a>
+        <a href="?entrenar=1" class="btn btn-primary">
+            🧠 Entrenar Modelo
+        </a>
+    </div>
+</div>
+{% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+{% endif %}
+
+<!-- Métricas del Modelo -->
+{% if metricas_entrenamiento or metricas_evaluacion %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-primary">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">📈 Métricas del Modelo</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% if metricas_entrenamiento %}
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h6 class="text-muted">Test R²</h6>
+                            <h3>{{ metricas_entrenamiento.test.r2|floatformat:3 }}</h3>
+                            <small class="text-success">Excelente: > 0.7</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h6 class="text-muted">Test RMSE</h6>
+                            <h3>{{ metricas_entrenamiento.test.rmse|floatformat:2 }}</h3>
+                            <small>unidades</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h6 class="text-muted">CV RMSE</h6>
+                            <h3>{{ metricas_entrenamiento.cv_rmse|floatformat:2 }}</h3>
+                            <small>Validación cruzada</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h6 class="text-muted">Registros</h6>
+                            <h3>{{ metricas_entrenamiento.n_samples }}</h3>
+                            <small>datos de entrenamiento</small>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                {% if metricas_entrenamiento.top_features %}
+                <hr>
+                <h6>🎯 Features Más Importantes:</h6>
+                <div class="row">
+                    {% for feat, imp in metricas_entrenamiento.top_features|slice:":5" %}
+                    <div class="col-md-2">
+                        <div class="progress" style="height: 25px;">
+                            <div class="progress-bar" role="progressbar" 
+                                 style="width: {{ imp|floatformat:2 }}%"
+                                 aria-valuenow="{{ imp|floatformat:2 }}" aria-valuemin="0" aria-valuemax="1">
+                                {{ feat|slice:":10" }}
+                            </div>
+                        </div>
+                        <small>{{ imp|floatformat:3 }}</small>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Estadísticas de Alertas -->
+{% if stats_alertas %}
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h6 class="text-muted">Total Alertas</h6>
+                <h2 class="text-primary">{{ stats_alertas.total }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center border-danger">
+            <div class="card-body">
+                <h6 class="text-muted">Críticas</h6>
+                <h2 class="text-danger">{{ stats_alertas.criticas }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center border-warning">
+            <div class="card-body">
+                <h6 class="text-muted">Preventivas</h6>
+                <h2 class="text-warning">{{ stats_alertas.preventivas }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center border-info">
+            <div class="card-body">
+                <h6 class="text-muted">Oportunidades</h6>
+                <h2 class="text-info">{{ stats_alertas.oportunidades }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Alertas Críticas IA -->
+{% if alertas_ia %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0">⚠️ Alertas Generadas por IA ({{ alertas_ia|length }})</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Prioridad</th>
+                                <th>Producto</th>
+                                <th>Tipo</th>
+                                <th>Predicción (7d)</th>
+                                <th>Stock Actual</th>
+                                <th>Días hasta Agotamiento</th>
+                                <th>Acción</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for alerta in alertas_ia %}
+                            <tr class="{% if alerta.tipo == 'critico' %}table-danger{% elif alerta.tipo == 'preventivo' %}table-warning{% else %}table-info{% endif %}">
+                                <td>
+                                    <span class="badge bg-dark">{{ alerta.prioridad }}</span>
+                                </td>
+                                <td><strong>{{ alerta.producto.nombre }}</strong></td>
+                                <td>
+                                    <span class="badge bg-{% if alerta.tipo == 'critico' %}danger{% elif alerta.tipo == 'preventivo' %}warning{% else %}info{% endif %}">
+                                        {{ alerta.tipo|upper }}
+                                    </span>
+                                </td>
+                                <td>{{ alerta.demanda_estimada }} unidades</td>
+                                <td>{{ alerta.stock_actual }} unidades</td>
+                                <td>
+                                    {% if alerta.dias_hasta_agotamiento < 999 %}
+                                        <strong class="{% if alerta.dias_hasta_agotamiento < 3 %}text-danger{% elif alerta.dias_hasta_agotamiento < 7 %}text-warning{% endif %}">
+                                            {{ alerta.dias_hasta_agotamiento }} días
+                                        </strong>
+                                    {% else %}
+                                        <span class="text-muted">N/A</span>
+                                    {% endif %}
+                                </td>
+                                <td><small>{{ alerta.accion_sugerida }}</small></td>
+                                <td>
+                                    <a href="{% url 'prediccion_producto' alerta.producto.id %}" class="btn btn-sm btn-outline-primary">
+                                        🔮 Ver Detalle
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Clasificación Inteligente de Productos -->
+{% if clasificacion %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>📊 Clasificación Automática de Productos (K-Means Clustering)</h5>
+                {% if stats_clustering %}
+                <small class="text-muted">
+                    Alta: {{ stats_clustering.alta_rotacion }} | 
+                    Media: {{ stats_clustering.media_rotacion }} | 
+                    Baja: {{ stats_clustering.baja_rotacion }}
+                </small>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover">
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th>Categoría IA</th>
+                                <th>Unidades Vendidas (30d)</th>
+                                <th>N° Ventas</th>
+                                <th>Ingresos</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in clasificacion %}
+                            <tr>
+                                <td>{{ item.nombre }}</td>
+                                <td>
+                                    <span class="badge bg-{% if item.categoria_ia == 'Alta Rotación' %}success{% elif item.categoria_ia == 'Media Rotación' %}info{% else %}secondary{% endif %}">
+                                        {{ item.categoria_ia }}
+                                    </span>
+                                </td>
+                                <td>{{ item.total_vendido }}</td>
+                                <td>{{ item.num_ventas }}</td>
+                                <td>${{ item.ingreso_total|floatformat:0|intcomma }}</td>
+                                <td>
+                                    <a href="{% url 'prediccion_producto' item.producto_id %}" class="btn btn-sm btn-outline-primary">
+                                        🔮 Predicción
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Info sobre el modelo -->
+<div class="row">
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <h6>🧠 Modelo de Predicción</h6>
+                <p class="mb-0">Random Forest Regressor</p>
+                <small class="text-muted">100 árboles de decisión</small>
+                <hr>
+                <small class="text-muted">
+                    {% if stats_modelo.modelo_existe %}
+                        <span class="text-success">✓ Modelo activo</span><br>
+                        Tamaño: {{ stats_modelo.tamano_kb|floatformat:1 }} KB
+                    {% else %}
+                        <span class="text-danger">✗ No entrenado</span>
+                    {% endif %}
+                </small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <h6>📈 Algoritmo de Clustering</h6>
+                <p class="mb-0">K-Means</p>
+                <small class="text-muted">K óptimo con Silhouette Score</small>
+                <hr>
+                <small class="text-muted">StandardScaler normalización</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <h6>⏱️ Horizonte de Predicción</h6>
+                <p class="mb-0">7-14 días</p>
+                <small class="text-muted">Configurable</small>
+                <hr>
+                <small class="text-muted">Actualización en tiempo real</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <h6>🎯 Features Utilizadas</h6>
+                <p class="mb-0">11 características</p>
+                <small class="text-muted">Temporales + Producto</small>
+                <hr>
+                <small class="text-muted">Encoding cíclico temporal</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

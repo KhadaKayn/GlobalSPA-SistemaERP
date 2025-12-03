@@ -1,0 +1,243 @@
+{% extends 'sitio1/base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block content %}
+<style>
+    :root {
+        --primary: #4F46E5;
+        --success: #10B981;
+        --danger: #EF4444;
+        --warning: #F59E0B;
+        --info: #3B82F6;
+    }
+
+    .stats-card {
+        border-radius: 12px;
+        padding: 1.5rem;
+        border: none;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease;
+    }
+
+    .stats-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .badge-entrada { background: var(--success); }
+    .badge-salida { background: var(--danger); }
+    .badge-ajuste { background: var(--warning); }
+    .badge-venta { background: var(--info); }
+
+    .filter-card {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+</style>
+
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2 class="mb-2">
+                <i class="fas fa-exchange-alt text-primary"></i>
+                Historial de Movimientos de Stock
+            </h2>
+            <p class="text-muted">Registro completo de entradas, salidas y ajustes de inventario</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <button class="btn btn-outline-primary" onclick="window.print()">
+                <i class="fas fa-print"></i> Imprimir
+            </button>
+        </div>
+    </div>
+
+    <!-- Estadísticas -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="stats-card" style="border-left: 4px solid var(--success);">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-1">Total Entradas</h6>
+                        <h3 class="mb-0">{{ total_entradas|intcomma }}</h3>
+                    </div>
+                    <i class="fas fa-arrow-down fa-2x" style="color: var(--success);"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card" style="border-left: 4px solid var(--danger);">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-1">Total Salidas</h6>
+                        <h3 class="mb-0">{{ total_salidas|intcomma }}</h3>
+                    </div>
+                    <i class="fas fa-arrow-up fa-2x" style="color: var(--danger);"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card" style="border-left: 4px solid var(--warning);">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-1">Ajustes</h6>
+                        <h3 class="mb-0">{{ total_ajustes|intcomma }}</h3>
+                    </div>
+                    <i class="fas fa-edit fa-2x" style="color: var(--warning);"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card" style="border-left: 4px solid var(--primary);">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-1">Movimientos Totales</h6>
+                        <h3 class="mb-0">{{ movimientos.count|intcomma }}</h3>
+                    </div>
+                    <i class="fas fa-list fa-2x" style="color: var(--primary);"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="filter-card">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label fw-bold">
+                    <i class="fas fa-filter"></i> Tipo de Movimiento
+                </label>
+                <select name="tipo" class="form-select" onchange="this.form.submit()">
+                    <option value="todos" {% if tipo_filtro == 'todos' %}selected{% endif %}>Todos</option>
+                    <option value="entrada" {% if tipo_filtro == 'entrada' %}selected{% endif %}>Entradas</option>
+                    <option value="salida" {% if tipo_filtro == 'salida' %}selected{% endif %}>Salidas</option>
+                    <option value="ajuste" {% if tipo_filtro == 'ajuste' %}selected{% endif %}>Ajustes</option>
+                    <option value="venta_forzada" {% if tipo_filtro == 'venta_forzada' %}selected{% endif %}>Ventas</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-bold">
+                    <i class="fas fa-calendar"></i> Período
+                </label>
+                <select name="fecha" class="form-select" onchange="this.form.submit()">
+                    <option value="todos" {% if fecha_filtro == 'todos' %}selected{% endif %}>Todos</option>
+                    <option value="hoy" {% if fecha_filtro == 'hoy' %}selected{% endif %}>Hoy</option>
+                    <option value="semana" {% if fecha_filtro == 'semana' %}selected{% endif %}>Esta semana</option>
+                    <option value="mes" {% if fecha_filtro == 'mes' %}selected{% endif %}>Este mes</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-bold">
+                    <i class="fas fa-search"></i> Buscar Producto
+                </label>
+                <input type="text" name="producto" class="form-control" 
+                       placeholder="Nombre o SKU del producto"
+                       value="{{ producto_buscar }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">&nbsp;</label>
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-search"></i> Filtrar
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Tabla de Movimientos -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-white">
+            <h5 class="mb-0">
+                <i class="fas fa-list"></i> Registro de Movimientos
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Fecha/Hora</th>
+                            <th>Producto</th>
+                            <th>Tipo</th>
+                            <th class="text-center">Cantidad</th>
+                            <th>Usuario</th>
+                            <th>Motivo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for mov in movimientos %}
+                        <tr>
+                            <td>
+                                <i class="fas fa-calendar-alt text-muted"></i>
+                                {{ mov.fecha_hora|date:"d/m/Y" }}<br>
+                                <small class="text-muted">{{ mov.fecha_hora|date:"H:i" }}</small>
+                            </td>
+                            <td>
+                                <strong>{{ mov.producto.nombre }}</strong><br>
+                                <small class="text-muted">
+                                    SKU: {{ mov.producto.sku|default:"N/A" }}
+                                </small>
+                            </td>
+                            <td>
+                                {% if mov.tipo_movimiento == 'entrada' %}
+                                    <span class="badge badge-entrada">
+                                        <i class="fas fa-arrow-down"></i> Entrada
+                                    </span>
+                                {% elif mov.tipo_movimiento == 'salida' %}
+                                    <span class="badge badge-salida">
+                                        <i class="fas fa-arrow-up"></i> Salida
+                                    </span>
+                                {% elif mov.tipo_movimiento == 'ajuste' %}
+                                    <span class="badge badge-ajuste">
+                                        <i class="fas fa-edit"></i> Ajuste
+                                    </span>
+                                {% else %}
+                                    <span class="badge badge-venta">
+                                        <i class="fas fa-shopping-cart"></i> Venta
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <span class="badge {% if mov.tipo_movimiento == 'entrada' %}bg-success{% else %}bg-danger{% endif %} fs-6">
+                                    {% if mov.tipo_movimiento == 'entrada' %}+{% else %}-{% endif %}{{ mov.cantidad }}
+                                </span>
+                            </td>
+                            <td>
+                                <i class="fas fa-user text-muted"></i>
+                                {{ mov.usuario.username|default:"Sistema" }}
+                            </td>
+                            <td>
+                                <small>{{ mov.motivo|default:"Sin motivo" }}</small>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-5">
+                                <i class="fas fa-inbox fa-3x text-muted mb-3 d-block"></i>
+                                <p class="text-muted">No hay movimientos registrados</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botón de regreso -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <a href="{% url 'gestion' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Volver al Panel
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+@media print {
+    .btn, .filter-card { display: none !important; }
+}
+</style>
+{% endblock %}

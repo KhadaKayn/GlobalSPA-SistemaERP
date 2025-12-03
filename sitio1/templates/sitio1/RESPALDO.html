@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  {% load static %}
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Diseño Pizza</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+
+<body>
+
+
+  <header class="header">
+
+    <section class="flex">
+
+      <a href="#home" class="logo">Pizza.</a>
+
+      <nav class="navbar">
+        <a href="#home">Inicio</a>
+        <a href="#about">Sobre Nosotros</a>
+        <a href="#menu">Menu</a>
+        <a href="#order">Orden</a>
+        <a href="#faq">Contacto</a>
+        <a href="{% url 'vista_administrador' %}" target="_self" rel="noopener noreferrer">Administración</a>
+      </nav>
+
+      <div class="icons">
+        <div id="menu-btn" class="fas fa-bars"></div>
+        <div id="user-btn" class="fas fa-user"></div>
+        <div id="order-btn" class="fas fa-box"></div>
+        <div id="cart-btn" class="fas fa-shopping-cart"><span></span></div>
+      </div>
+
+    </section>
+
+  </header>
+
+
+
+  <div class="my-orders">
+
+    <section>
+
+      <div id="close-orders"><span>Cerrar</span></div>
+
+      <h3 class="title"> Mis ordenes</h3>
+
+      <div class="box">
+      </div>
+
+      <div class="box">
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="shopping-cart">
+
+    <section>
+
+      <div id="close-cart"><span>Cerrar</span></div>
+      <a href="#order" class="btn">Ordene ahora</a>
+
+    </section>
+
+  </div>
+
+  <div class="home-bg">
+
+    <section class="home" id="home">
+
+      <div class="slide-container">
+
+        <div class="slide active">
+          <div class="image">
+            <img src="{% static 'imagenes/home-img-1.png' %}" alt="">
+          </div>
+          <div class="content">
+            <h3>Pizza de peperonnni</h3>
+            <div class="fas fa-angle-left" onclick="prev()"></div>
+            <div class="fas fa-angle-right" onclick="next()"></div>
+          </div>
+        </div>
+
+        <div class="slide">
+          <div class="image">
+            <img src="{% static 'imagenes/home-img-2.png' %}" alt="">
+          </div>
+          <div class="content">
+            <h3>Pizza con champiñonez</h3>
+            <div class="fas fa-angle-left" onclick="prev()"></div>
+            <div class="fas fa-angle-right" onclick="next()"></div>
+          </div>
+        </div>
+
+        <div class="slide">
+          <div class="image">
+            <img src="{% static 'imagenes/home-img-3.png' %}" alt="">
+          </div>
+          <div class="content">
+            <h3>Pizza extra-grande</h3>
+            <div class="fas fa-angle-left" onclick="prev()"></div>
+            <div class="fas fa-angle-right" onclick="next()"></div>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+  </div>
+
+
+  <section class="about" id="about">
+
+    <h1 class="heading">Sobre Nosotros</h1>
+
+    <div class="box-container">
+
+      <div class="box">
+        <img src="{% static 'imagenes/about-1.svg' %}" alt="">
+        <h3>Hecho con amor</h3>
+        <p>Lorem ipsum dolor, sit amet consectetur adipisicing elit. Illum quae amet beatae magni numquam facere sit.
+          Tempora vel laboriosam repudiandae!</p>
+        <a href="#menu" class="btn">Nuestro Menu</a>
+      </div>
+
+      <div class="box">
+        <img src="{% static 'imagenes/about-2.svg' %}" alt="">
+        <h3>30 minutos de entrega</h3>
+        <p>Lorem ipsum dolor, sit amet consectetur adipisicing elit. Illum quae amet beatae magni numquam facere sit.
+          Tempora vel laboriosam repudiandae!</p>
+        <a href="#menu" class="btn">Nuestro Menu</a>
+      </div>
+
+      <div class="box">
+        <img src="{% static 'imagenes/about-3.svg' %}" alt="">
+        <h3>Comè con tus amigos</h3>
+        <p>Lorem ipsum dolor, sit amet consectetur adipisicing elit. Illum quae amet beatae magni numquam facere sit.
+          Tempora vel laboriosam repudiandae!</p>
+        <a href="#menu" class="btn">Nuestro Menu</a>
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <section id="menu" class="menu">
+
+    <h1 class="heading">Nuestro Menu</h1>
+
+    <div class="box-container">
+
+      <div class="box">
+        <div class="price"><span>65000clp</span></div>
+        <img src="{% static 'imagenes/pizza-1.jpg'%}" alt="">
+        <div class="name">Pizza 1</div>
+        <form action="" method="post">
+          <input type="number" min="1" max="100" value="1" class="qty" name="qty">
+          <input type="submit" value="Agregar al carrito" name="add_to_cart" class="btn">
+        </form>
+      </div>
+
+      <div class="box">
+        <div class="price"><span>7500clp</span></div>
+        <img src="{% static 'imagenes/pizza-2.jpg'%}" alt="">
+        <div class="name">Pizza 2</div>
+        <form action="" method="post">
+          <input type="number" min="1" max="100" value="1" class="qty" name="qty">
+          <input type="submit" value="Agregar al carrito" name="add_to_cart" class="btn">
+        </form>
+      </div>
+
+      <div class="box">
+        <div class="price"><span>65000clp</span></div>
+        <img src="{% static 'imagenes/pizza-3.jpg'%}" alt="">
+        <div class="name">Pizza 3</div>
+        <form action="" method="post">
+          <input type="number" min="1" max="100" value="1" class="qty" name="qty">
+          <input type="submit" value="Agregar al carrito" name="add_to_cart" class="btn">
+        </form>
+      </div>
+
+      <div class="box">
+        <div class="price"><span>8500clp</span></div>
+        <img src="{% static 'imagenes/pizza-4.jpg'%}" alt="">
+        <div class="name">Pizza 4</div>
+        <form action="" method="post">
+          <input type="number" min="1" max="100" value="1" class="qty" name="qty">
+          <input type="submit" value="Agregar al carrito" name="add_to_cart" class="btn">
+        </form>
+      </div>
+
+      <div class="box">
+        <div class="price"><span>12000clp</span></div>
+        <img src="{% static 'imagenes/pizza-5.jpg'%}" alt="">
+        <div class="name">Pizza 5</div>
+        <form action="" method="post">
+          <input type="number" min="1" max="100" value="1" class="qty" name="qty">
+          <input type="submit" value="Agregar al carrito" name="add_to_cart" class="btn">
+        </form>
+      </div>
+
+      <div class="box">
+        <div class="price"><span>65000clp</span></div>
+        <img src="{% static 'imagenes/pizza-6.jpg'%}" alt="">
+        <div class="name">Pizza 6</div>
+        <form action="" method="post">
+          <input type="number" min="1" max="100" value="1" class="qty" name="qty">
+          <input type="submit" value="Agregar al carrito" name="add_to_cart" class="btn">
+        </form>
+      </div>
+
+      <div class="box">
+        <div class="price"><span>5500clp</span></div>
+        <img src="{% static 'imagenes/pizza-7.jpg'%}" alt="">
+        <div class="name">Pizza 7</div>
+        <form action="" method="post">
+          <input type="number" min="1" max="100" value="1" class="qty" name="qty">
+          <input type="submit" value="Agregar al carrito" name="add_to_cart" class="btn">
+        </form>
+      </div>
+
+      <div class="box">
+        <div class="price"><span>6500clp</span></div>
+        <img src="{% static 'imagenes/pizza-8.jpg'%}" alt="">
+        <div class="name">Pizza 8</div>
+        <form action="" method="post">
+          <input type="number" min="1" max="100" value="1" class="qty" name="qty">
+          <input type="submit" value="Agregar al carrito" name="add_to_cart" class="btn">
+        </form>
+      </div>
+
+      <div class="box">
+        <div class="price"><span>12000clp</span></div>
+        <img src="{% static 'imagenes/pizza-9.jpg'%}" alt="">
+        <div class="name">Pizza 9</div>
+        <form action="" method="post">
+          <input type="number" min="1" max="100" value="1" class="qty" name="qty">
+          <input type="submit" value="Agregar al carrito" name="add_to_cart" class="btn">
+        </form>
+      </div>
+
+    </div>
+  </section>
+
+
+  <section class="footer">
+
+    <div class="box-container">
+
+      <div class="box">
+        <i class="fas fa-phone"></i>
+        <h3>Número telefónico</h3>
+        <p>+123-456-7890</p>
+        <p>+111-222-3333</p>
+      </div>
+
+      <div class="box">
+        <i class="fas fa-map-marker-alt"></i>[]
+        <h3>Nuestra Direccion</h3>
+        <p>Av.Concha y Toro, Puente Alto</p>
+      </div>
+
+      <div class="box">
+        <i class="fas fa-clock"></i>
+        <h3>Hora de apertura</h3>
+        <p>9:00 hasta 21:00</p>
+      </div>
+
+      <div class="box">
+        <i class="fas fa-envelope"></i>
+        <h3>Correo electronico</h3>
+        <p>pizza@gmail.com</p>
+        <p>pizza2@gmail.com</p>
+      </div>
+
+    </div>
+
+    <div class="credit">
+      &copy; copyright @ 2023 by <span>Pizza</span> | Todos los derechos reservados!
+    </div>
+
+  </section>
+
+  <script src="{% static 'js/script.js' %}"></script>
+</body>
+
+</html> 

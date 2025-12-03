@@ -1,0 +1,387 @@
+{% extends 'sitio1/base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    :root {
+        --primary: #4F46E5;
+        --primary-dark: #4338CA;
+        --secondary: #10B981;
+        --danger: #EF4444;
+        --warning: #F59E0B;
+        --bg-light: #F9FAFB;
+        --bg-card: #FFFFFF;
+        --text-dark: #1F2937;
+        --text-muted: #6B7280;
+        --border: #E5E7EB;
+        --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+
+    .categorias-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+
+    .categorias-header {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        border-radius: 16px;
+        padding: 2rem;
+        color: white;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow-lg);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .categorias-header-title {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .categorias-header h1 {
+        margin: 0;
+        font-size: 2rem;
+        font-weight: 700;
+    }
+
+    .categorias-header .icon-wrapper {
+        width: 60px;
+        height: 60px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.75rem;
+    }
+
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        text-decoration: none;
+        font-size: 0.95rem;
+    }
+
+    .btn-primary {
+        background: white;
+        color: var(--primary);
+    }
+
+    .btn-primary:hover {
+        background: var(--bg-light);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-edit {
+        background: var(--warning);
+        color: white;
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+    }
+
+    .btn-edit:hover {
+        background: #D97706;
+        transform: translateY(-1px);
+    }
+
+    .btn-delete {
+        background: var(--danger);
+        color: white;
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+    }
+
+    .btn-delete:hover {
+        background: #DC2626;
+        transform: translateY(-1px);
+    }
+
+    .btn-back {
+        background: var(--bg-light);
+        color: var(--text-dark);
+        border: 2px solid var(--border);
+    }
+
+    .btn-back:hover {
+        background: var(--border);
+    }
+
+    .categorias-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: var(--bg-card);
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+    }
+
+    .stat-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-card-title {
+        font-size: 0.875rem;
+        color: var(--text-muted);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .stat-card-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+    }
+
+    .stat-card-icon.primary {
+        background: rgba(79, 70, 229, 0.1);
+        color: var(--primary);
+    }
+
+    .stat-card-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--text-dark);
+    }
+
+    .categorias-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .categoria-card {
+        background: var(--bg-card);
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+        transition: all 0.3s ease;
+    }
+
+    .categoria-card:hover {
+        box-shadow: var(--shadow-lg);
+        transform: translateY(-4px);
+    }
+
+    .categoria-card-header {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .categoria-icon {
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: white;
+        flex-shrink: 0;
+    }
+
+    .categoria-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .categoria-nombre {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--text-dark);
+        margin: 0 0 0.5rem 0;
+        word-wrap: break-word;
+    }
+
+    .categoria-descripcion {
+        color: var(--text-muted);
+        font-size: 0.875rem;
+        line-height: 1.5;
+        margin: 0;
+    }
+
+    .categoria-actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: var(--bg-card);
+        border-radius: 12px;
+        box-shadow: var(--shadow);
+    }
+
+    .empty-state-icon {
+        font-size: 4rem;
+        color: var(--text-muted);
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    .empty-state h3 {
+        color: var(--text-dark);
+        margin-bottom: 0.5rem;
+    }
+
+    .empty-state p {
+        color: var(--text-muted);
+        margin-bottom: 2rem;
+    }
+
+    .actions {
+        margin-top: 2rem;
+        text-align: center;
+    }
+
+    @media (max-width: 768px) {
+        .categorias-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .categorias-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .categoria-actions {
+            flex-direction: column;
+        }
+
+        .btn-edit, .btn-delete {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="categorias-container">
+    <!-- Header -->
+    <div class="categorias-header">
+        <div class="categorias-header-title">
+            <div class="icon-wrapper">
+                <i class="fas fa-tags"></i>
+            </div>
+            <div>
+                <h1>Gestión de Categorías</h1>
+                <p style="margin: 0; opacity: 0.9; font-size: 0.95rem;">Organiza tus productos por categorías</p>
+            </div>
+        </div>
+        <a href="{% url 'crear_categoria' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i>
+            Nueva Categoría
+        </a>
+    </div>
+
+    <!-- Estadísticas -->
+    <div class="categorias-stats">
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <span class="stat-card-title">Total Categorías</span>
+                <div class="stat-card-icon primary">
+                    <i class="fas fa-tags"></i>
+                </div>
+            </div>
+            <div class="stat-card-value">{{ categorias|length }}</div>
+        </div>
+    </div>
+
+    <!-- Lista de Categorías -->
+    {% if categorias %}
+        <div class="categorias-grid">
+            {% for categoria in categorias %}
+            <div class="categoria-card">
+                <div class="categoria-card-header">
+                    <div class="categoria-icon">
+                        <i class="fas fa-tag"></i>
+                    </div>
+                    <div class="categoria-info">
+                        <h3 class="categoria-nombre">{{ categoria.nombre }}</h3>
+                        {% if categoria.descripcion %}
+                            <p class="categoria-descripcion">{{ categoria.descripcion }}</p>
+                        {% else %}
+                            <p class="categoria-descripcion" style="font-style: italic; opacity: 0.6;">
+                                Sin descripción
+                            </p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="categoria-actions">
+                    <a href="{% url 'editar_categoria' categoria.id %}" class="btn btn-edit">
+                        <i class="fas fa-edit"></i>
+                        Editar
+                    </a>
+                    <form action="{% url 'eliminar_categoria' categoria.id %}" method="post" style="flex: 1;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-delete" style="width: 100%;" 
+                                onclick="return confirm('¿Está seguro de eliminar esta categoría?')">
+                            <i class="fas fa-trash"></i>
+                            Eliminar
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        
+    {% else %}
+    
+        <!-- Estado vacío -->
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <i class="fas fa-tags"></i>
+            </div>
+            <h3>No hay categorías registradas</h3>
+            <p>Comienza creando tu primera categoría para organizar tus productos</p>
+            <a href="{% url 'crear_categoria' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i>
+                Crear Primera Categoría
+            </a>
+        </div>
+        <!-- Botón volver -->
+        <div class="actions">
+            <a href="{% url 'gestion' %}" class="btn btn-back">
+                <i class="fas fa-arrow-left"></i>
+                Volver
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

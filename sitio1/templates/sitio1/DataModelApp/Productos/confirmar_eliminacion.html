@@ -1,0 +1,331 @@
+{% extends 'sitio1/base.html' %}
+{% load static %}
+
+{% block css %}
+<style>
+    .confirmation-container {
+        max-width: 700px;
+        margin: 3rem auto;
+        padding: 2rem;
+    }
+    
+    .alert-card {
+        background: white;
+        border-radius: 1rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+    
+    .alert-header {
+        background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+        color: white;
+        padding: 2rem;
+        text-align: center;
+    }
+    
+    .alert-header .icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+    }
+    
+    .alert-header h2 {
+        margin: 0;
+        font-size: 1.75rem;
+    }
+    
+    .alert-body {
+        padding: 2rem;
+    }
+    
+    .product-info {
+        background: #f7fafc;
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1.5rem;
+        border-left: 4px solid #4299e1;
+    }
+    
+    .product-info h3 {
+        margin: 0 0 0.5rem 0;
+        color: #2d3748;
+    }
+    
+    .product-info p {
+        margin: 0.25rem 0;
+        color: #718096;
+    }
+    
+    .warning-box {
+        background: #fffaf0;
+        border: 2px solid #f6ad55;
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .warning-box .warning-title {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #c05621;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        font-size: 1.1rem;
+    }
+    
+    .warning-box ul {
+        margin: 0;
+        padding-left: 1.5rem;
+        color: #744210;
+    }
+    
+    .warning-box li {
+        margin: 0.5rem 0;
+    }
+    
+    .ventas-list {
+        max-height: 200px;
+        overflow-y: auto;
+        background: #f7fafc;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .venta-item {
+        padding: 0.75rem;
+        background: white;
+        border-radius: 0.375rem;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+        color: #2d3748;
+    }
+    
+    .options-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .option-card {
+        padding: 1.5rem;
+        border: 2px solid #e2e8f0;
+        border-radius: 0.75rem;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-align: center;
+    }
+    
+    .option-card:hover {
+        border-color: #4299e1;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    
+    .option-card.selected {
+        border-color: #4299e1;
+        background: #ebf8ff;
+    }
+    
+    .option-card .icon {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .option-card h4 {
+        margin: 0.5rem 0;
+        color: #2d3748;
+    }
+    
+    .option-card p {
+        margin: 0;
+        font-size: 0.875rem;
+        color: #718096;
+    }
+    
+    .recommended {
+        background: #c6f6d5;
+        color: #22543d;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-top: 0.5rem;
+        display: inline-block;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+    }
+    
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-block;
+    }
+    
+    .btn-secondary {
+        background: #e2e8f0;
+        color: #2d3748;
+    }
+    
+    .btn-secondary:hover {
+        background: #cbd5e0;
+    }
+    
+    .btn-warning {
+        background: #ed8936;
+        color: white;
+    }
+    
+    .btn-warning:hover {
+        background: #dd6b20;
+    }
+    
+    .btn-danger {
+        background: #f56565;
+        color: white;
+    }
+    
+    .btn-danger:hover {
+        background: #e53e3e;
+    }
+    
+    .btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    
+    @media (max-width: 768px) {
+        .options-container {
+            grid-template-columns: 1fr;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+        }
+        
+        .btn {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="confirmation-container">
+    <div class="alert-card">
+        <div class="alert-header">
+            <div class="icon">⚠️</div>
+            <h2>No se puede eliminar el producto</h2>
+        </div>
+        
+        <div class="alert-body">
+            <div class="product-info">
+                <h3>{{ producto.nombre }}</h3>
+                <p><strong>SKU:</strong> {{ producto.sku|default:"—" }}</p>
+                <p><strong>Categoría:</strong> {{ producto.categoria.nombre }}</p>
+            </div>
+            
+            <div class="warning-box">
+                <div class="warning-title">
+                    <span>🔗</span>
+                    <span>Este producto tiene {{ ventas_count }} venta(s) registrada(s)</span>
+                </div>
+                <p style="margin-bottom: 1rem;">Eliminar este producto afectará el historial de ventas. Por favor, elige una de las siguientes opciones:</p>
+                
+                <div class="ventas-list">
+                    {% for venta in ventas|slice:":5" %}
+                    <div class="venta-item">
+                        📄 {{ venta }} - Venta #{{ venta.venta.id }}
+                    </div>
+                    {% endfor %}
+                    {% if ventas_count > 5 %}
+                    <div class="venta-item" style="text-align: center; color: #718096;">
+                        ... y {{ ventas_count|add:"-5" }} venta(s) más
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <h3 style="margin-bottom: 1rem; color: #2d3748;">¿Qué deseas hacer?</h3>
+            
+            <div class="options-container">
+                <div class="option-card" id="option-deactivate">
+                    <div class="icon">🔒</div>
+                    <h4>Desactivar</h4>
+                    <p>El producto se ocultará pero mantendrá su historial</p>
+                    <span class="recommended">✓ Recomendado</span>
+                </div>
+                
+                <div class="option-card" id="option-delete">
+                    <div class="icon">🗑️</div>
+                    <h4>Eliminar Todo</h4>
+                    <p>Borra el producto y todas sus ventas asociadas</p>
+                </div>
+            </div>
+            
+            <div class="action-buttons">
+                <a href="{% url 'productos' %}" class="btn btn-secondary">
+                    ← Cancelar
+                </a>
+                
+                <form id="form-deactivate" action="{% url 'desactivar_producto' producto.id %}" method="post" style="display: none;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-warning">
+                        🔒 Desactivar Producto
+                    </button>
+                </form>
+                
+                <form id="form-delete" action="{% url 'eliminar_productos' producto.id %}" method="post" style="display: none;">
+                    {% csrf_token %}
+                    <input type="hidden" name="forzar_eliminacion" value="true">
+                    <button type="submit" class="btn btn-danger">
+                        🗑️ Eliminar Todo
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const optionDeactivate = document.getElementById('option-deactivate');
+    const optionDelete = document.getElementById('option-delete');
+    const formDeactivate = document.getElementById('form-deactivate');
+    const formDelete = document.getElementById('form-delete');
+    
+    let selectedOption = null;
+    
+    optionDeactivate.addEventListener('click', function() {
+        selectedOption = 'deactivate';
+        optionDeactivate.classList.add('selected');
+        optionDelete.classList.remove('selected');
+        formDeactivate.style.display = 'block';
+        formDelete.style.display = 'none';
+    });
+    
+    optionDelete.addEventListener('click', function() {
+        if (confirm('⚠️ ADVERTENCIA: Esta acción eliminará permanentemente el producto y TODAS sus ventas asociadas.\n\n¿Estás absolutamente seguro?\n\nEsta acción NO se puede deshacer.')) {
+            selectedOption = 'delete';
+            optionDelete.classList.add('selected');
+            optionDeactivate.classList.remove('selected');
+            formDelete.style.display = 'block';
+            formDeactivate.style.display = 'none';
+        }
+    });
+    
+    // Seleccionar "Desactivar" por defecto
+    optionDeactivate.click();
+});
+</script>
+{% endblock %}

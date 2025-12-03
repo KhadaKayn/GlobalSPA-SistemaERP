@@ -1,0 +1,55 @@
+{% load humanize %}
+================================================================
+            ORDEN DE COMPRA {{ orden.numero_orden }}
+================================================================
+
+Estimado(a) {{ proveedor.nombre }},
+
+Por medio del presente, solicitamos formalmente la cotización 
+y/o suministro de los siguientes productos:
+
+----------------------------------------------------------------
+INFORMACIÓN DE LA ORDEN
+----------------------------------------------------------------
+Fecha Orden:      {{ orden.fecha_creacion|date:"d/m/Y H:i" }}
+Solicitado por:   {{ orden.creado_por.get_full_name }}
+{% if orden.creado_por.email %}Email contacto:   {{ orden.creado_por.email }}{% endif %}
+
+----------------------------------------------------------------
+DETALLE DE PRODUCTOS
+----------------------------------------------------------------
+{% for item in items %}
+{{ forloop.counter }}. {{ item.producto.nombre }}
+   SKU:              {{ item.producto.sku|default:"N/A" }}
+   Cantidad:         {{ item.cantidad_solicitada }} unidades
+   Precio Unitario:  ${{ item.precio_unitario|floatformat:0|intcomma }}
+   Subtotal:         ${{ item.subtotal|floatformat:0|intcomma }}
+   {% if item.nivel_criticidad == 'critico' %}URGENTE{% elif item.nivel_criticidad == 'preventivo' %}PREVENTIVO{% endif %}
+
+{% endfor %}
+----------------------------------------------------------------
+TOTAL UNIDADES:   {{ total_unidades }} unidades
+MONTO TOTAL:      ${{ total|floatformat:0|intcomma }}
+----------------------------------------------------------------
+
+{% if orden.observaciones_usuario %}
+OBSERVACIONES:
+{{ orden.observaciones_usuario }}
+
+{% endif %}
+PRÓXIMOS PASOS:
+1. Confirmar disponibilidad de productos
+2. Indicar tiempo estimado de entrega
+3. Enviar cotización formal si corresponde
+4. Coordinar fecha y hora de despacho/recepción
+
+================================================================
+
+Para cualquier consulta, contactar a:
+{{ orden.creado_por.get_full_name }}
+{% if orden.creado_por.email %}{{ orden.creado_por.email }}{% endif %}
+
+----------------------------------------------------------------
+🤖 Generado automáticamente por Sistema de Gestión Inteligente
+Orden N° {{ orden.numero_orden }} | {{ orden.fecha_creacion|date:"d/m/Y" }}
+----------------------------------------------------------------

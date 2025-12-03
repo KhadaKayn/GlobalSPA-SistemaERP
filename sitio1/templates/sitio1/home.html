@@ -1,0 +1,577 @@
+{% extends 'sitio1/base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+  .hero-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 60px 30px;
+    border-radius: 20px;
+    margin-bottom: 40px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .hero-section::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 500px;
+    height: 500px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+  }
+  
+  .hero-content {
+    position: relative;
+    z-index: 2;
+  }
+  
+  .hero-title {
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: 15px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+  }
+  
+  .hero-subtitle {
+    font-size: 1.3rem;
+    opacity: 0.9;
+    margin-bottom: 10px;
+  }
+  
+  .hero-user {
+    font-size: 1rem;
+    opacity: 0.8;
+  }
+  
+  .quick-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 40px;
+  }
+  
+  .stat-card {
+    background: white;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    transition: all 0.3s;
+    border-left: 4px solid;
+  }
+  
+  .stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+  }
+  
+  .stat-card.primary { border-color: #667eea; }
+  .stat-card.success { border-color: #06d6a0; }
+  .stat-card.warning { border-color: #ffd166; }
+  .stat-card.danger { border-color: #ef476f; }
+  
+  .stat-icon {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+  }
+  
+  .stat-label {
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin-bottom: 5px;
+  }
+  
+  .stat-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #212529;
+  }
+  
+  .menu-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 25px;
+    margin-bottom: 40px;
+  }
+  
+  .menu-card {
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    transition: all 0.3s;
+    cursor: pointer;
+    border: 2px solid transparent;
+  }
+  
+  .menu-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 35px rgba(0,0,0,0.2);
+    border-color: #667eea;
+  }
+  
+  .menu-card-header {
+    padding: 30px 25px;
+    text-align: center;
+    position: relative;
+  }
+  
+  .menu-card-header.admin {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  }
+  
+  .menu-card-header.analytics {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  }
+  
+  .menu-card-header.inventory {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  }
+  
+  .menu-card-header.sales {
+    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+  }
+  
+  .menu-card-header.stock {
+    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+  }
+  
+  .menu-card-header.profile {
+    background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);
+  }
+  
+  .menu-icon {
+    font-size: 4rem;
+    color: white;
+    margin-bottom: 15px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+  }
+  
+  .menu-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 8px;
+  }
+  
+  .menu-description {
+    font-size: 0.95rem;
+    color: rgba(255,255,255,0.9);
+  }
+  
+  .menu-card-body {
+    padding: 25px;
+  }
+  
+  .menu-features {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .menu-features li {
+    padding: 10px 0;
+    border-bottom: 1px solid #f1f3f5;
+    color: #495057;
+    font-size: 0.95rem;
+  }
+  
+  .menu-features li:last-child {
+    border-bottom: none;
+  }
+  
+  .menu-features li i {
+    color: #667eea;
+    margin-right: 10px;
+  }
+  
+  .menu-card-footer {
+    padding: 20px 25px;
+    background: #f8f9fa;
+    text-align: center;
+  }
+  
+  .btn-menu {
+    width: 100%;
+    padding: 12px;
+    border-radius: 10px;
+    font-weight: 600;
+    transition: all 0.3s;
+  }
+  
+  .recent-activity {
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  }
+  
+  .activity-item {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    border-bottom: 1px solid #f1f3f5;
+    transition: background 0.2s;
+  }
+  
+  .activity-item:hover {
+    background: #f8f9fa;
+  }
+  
+  .activity-item:last-child {
+    border-bottom: none;
+  }
+  
+  .activity-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin-right: 15px;
+  }
+  
+  .activity-icon.success { background: #d1f4e0; color: #06d6a0; }
+  .activity-icon.info { background: #d3e5ff; color: #4facfe; }
+  .activity-icon.warning { background: #fff3cd; color: #ffd166; }
+  
+  .activity-content {
+    flex: 1;
+  }
+  
+  .activity-title {
+    font-weight: 600;
+    color: #212529;
+    margin-bottom: 3px;
+  }
+  
+  .activity-time {
+    font-size: 0.85rem;
+    color: #6c757d;
+  }
+  
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #adb5bd;
+  }
+  
+  .empty-state i {
+    font-size: 4rem;
+    margin-bottom: 20px;
+    opacity: 0.3;
+  }
+  
+  @media (max-width: 768px) {
+    .hero-title {
+      font-size: 2rem;
+    }
+    
+    .menu-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<div class="container-fluid px-4">
+  <!-- Hero Section -->
+  <div class="hero-section">
+    <div class="hero-content">
+      <h1 class="hero-title">¡Bienvenido de vuelta! 👋</h1>
+      <p class="hero-subtitle">Panel de Control - Sistema de Gestión</p>
+      <p class="hero-user">
+        <i class="bi bi-person-circle"></i> {{ request.user.get_full_name|default:request.user.username }}
+        {% if request.user.usuario.rol %}
+          <span class="badge bg-light text-dark ms-2">{{ request.user.usuario.rol.nombre }}</span>
+        {% endif %}
+      </p>
+    </div>
+  </div>
+
+  <!-- Quick Stats -->
+  {% if quick_stats %}
+  <div class="quick-stats">
+    <div class="stat-card primary">
+      <div class="stat-icon">💰</div>
+      <div class="stat-label">Ventas Hoy</div>
+      <div class="stat-value">${{ quick_stats.ventas_hoy|floatformat:0 }}</div>
+    </div>
+    
+    <div class="stat-card success">
+      <div class="stat-icon">📦</div>
+      <div class="stat-label">Productos Activos</div>
+      <div class="stat-value">{{ quick_stats.productos_activos }}</div>
+    </div>
+    
+    <div class="stat-card warning">
+      <div class="stat-icon">⚠️</div>
+      <div class="stat-label">Alertas Stock</div>
+      <div class="stat-value">{{ quick_stats.alertas_stock }}</div>
+    </div>
+    
+    <div class="stat-card danger">
+      <div class="stat-icon">🛒</div>
+      <div class="stat-label">Transacciones Hoy</div>
+      <div class="stat-value">{{ quick_stats.transacciones_hoy }}</div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Menu Grid -->
+<div class="menu-grid">
+  <!-- GESTIÓN DEL SISTEMA (Solo Admin) -->
+  {% if perms.auth.add_user or request.user.is_superuser %}
+  <div class="menu-card" data-url="{% url 'gestion' %}">
+    <div class="menu-card-header admin">
+      <div class="menu-icon">
+        <i class="bi bi-gear-fill"></i>
+      </div>
+      <div class="menu-title">Gestión del Sistema</div>
+      <div class="menu-description">Administración completa</div>
+    </div>
+    <div class="menu-card-body">
+      <ul class="menu-features">
+        <li><i class="bi bi-check-circle-fill"></i> Usuarios y permisos</li>
+        <li><i class="bi bi-check-circle-fill"></i> Configuración general</li>
+        <li><i class="bi bi-check-circle-fill"></i> Auditoría y logs</li>
+        <li><i class="bi bi-check-circle-fill"></i> Roles y accesos</li>
+      </ul>
+    </div>
+    <div class="menu-card-footer">
+      <button class="btn btn-dark btn-menu">
+        <i class="bi bi-arrow-right-circle"></i> Acceder
+      </button>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ANALÍTICA Y REPORTES -->
+  {% if perms.sitio1.view_venta or request.user.is_staff %}
+  <div class="menu-card" data-url="{% url 'panel_analytics_ia' %}">
+    <div class="menu-card-header analytics">
+      <div class="menu-icon">
+        <i class="bi bi-graph-up-arrow"></i>
+      </div>
+      <div class="menu-title">Analítica y Reportes</div>
+      <div class="menu-description">Métricas e indicadores</div>
+    </div>
+    <div class="menu-card-body">
+      <ul class="menu-features">
+        <li><i class="bi bi-check-circle-fill"></i> Dashboard interactivo</li>
+        <li><i class="bi bi-check-circle-fill"></i> Reportes de ventas</li>
+        <li><i class="bi bi-check-circle-fill"></i> KPIs en tiempo real</li>
+        <li><i class="bi bi-check-circle-fill"></i> Predicciones IA</li>
+      </ul>
+    </div>
+    <div class="menu-card-footer">
+      <button class="btn btn-primary btn-menu">
+        <i class="bi bi-bar-chart-line"></i> Ver Análisis
+      </button>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- INVENTARIO Y PRODUCTOS -->
+  {% if perms.sitio1.view_productos or request.user.is_staff %}
+  <div class="menu-card" data-url="{% url 'gestion' %}#inventario">
+    <div class="menu-card-header inventory">
+      <div class="menu-icon">
+        <i class="bi bi-box-seam-fill"></i>
+      </div>
+      <div class="menu-title">Inventario</div>
+      <div class="menu-description">Gestión de productos</div>
+    </div>
+    <div class="menu-card-body">
+      <ul class="menu-features">
+        <li><i class="bi bi-check-circle-fill"></i> Catálogo de productos</li>
+        <li><i class="bi bi-check-circle-fill"></i> Control de stock</li>
+        <li><i class="bi bi-check-circle-fill"></i> Movimientos</li>
+        <li><i class="bi bi-check-circle-fill"></i> Proveedores</li>
+      </ul>
+    </div>
+    <div class="menu-card-footer">
+      <button class="btn btn-info btn-menu">
+        <i class="bi bi-boxes"></i> Gestionar
+      </button>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- PUNTO DE VENTA -->
+  {% if perms.sitio1.add_venta or request.user.is_staff %}
+  <div class="menu-card" data-url="{% url 'listar_ventas' %}">
+    <div class="menu-card-header sales">
+      <div class="menu-icon">
+        <i class="bi bi-shop"></i>
+      </div>
+      <div class="menu-title">Punto de Venta</div>
+      <div class="menu-description">Ventas en mostrador</div>
+    </div>
+    <div class="menu-card-body">
+      <ul class="menu-features">
+        <li><i class="bi bi-check-circle-fill"></i> Venta rápida</li>
+        <li><i class="bi bi-check-circle-fill"></i> Búsqueda inteligente</li>
+        <li><i class="bi bi-check-circle-fill"></i> Múltiples pagos</li>
+        <li><i class="bi bi-check-circle-fill"></i> Impresión tickets</li>
+      </ul>
+    </div>
+    <div class="menu-card-footer">
+      <button class="btn btn-success btn-menu">
+        <i class="bi bi-cart-plus"></i> Iniciar Venta
+      </button>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- CONTROL DE STOCK (Auditoría Física) -->
+  {% if perms.sitio1.change_productos or request.user.is_staff %}
+  <div class="menu-card" data-url="{%url 'inventario_fisico_inicio'%}">
+    <div class="menu-card-header stock">
+      <div class="menu-icon">
+        <i class="bi bi-clipboard-check-fill"></i>
+      </div>
+      <div class="menu-title">Control de Stock</div>
+      <div class="menu-description">Auditoría y ajustes</div>
+    </div>
+    <div class="menu-card-body">
+      <ul class="menu-features">
+        <li><i class="bi bi-check-circle-fill"></i> Comparación física vs digital</li>
+        <li><i class="bi bi-check-circle-fill"></i> Ajustes de inventario</li>
+        <li><i class="bi bi-check-circle-fill"></i> Escaneo de productos</li>
+        <li><i class="bi bi-check-circle-fill"></i> Reporte de diferencias</li>
+      </ul>
+    </div>
+    <div class="menu-card-footer">
+      <button class="btn btn-warning btn-menu">
+        <i class="bi bi-clipboard-data"></i> Auditar
+      </button>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- MI PERFIL (Siempre visible) -->
+  <div class="menu-card" data-url="{% url 'ver_perfil' %}">
+    <div class="menu-card-header profile">
+      <div class="menu-icon">
+        <i class="bi bi-person-circle"></i>
+      </div>
+      <div class="menu-title">Mi Perfil</div>
+      <div class="menu-description">Configuración personal</div>
+    </div>
+    <div class="menu-card-body">
+      <ul class="menu-features">
+        <li><i class="bi bi-check-circle-fill"></i> Datos personales</li>
+        <li><i class="bi bi-check-circle-fill"></i> Cambiar contraseña</li>
+        <li><i class="bi bi-check-circle-fill"></i> Historial de actividad</li>
+        <li><i class="bi bi-check-circle-fill"></i> Preferencias</li>
+      </ul>
+    </div>
+    <div class="menu-card-footer">
+      <button class="btn btn-secondary btn-menu">
+        <i class="bi bi-person-gear"></i> Configurar
+      </button>
+    </div>
+  </div>
+</div>
+
+  <!-- Recent Activity -->
+  <div class="row">
+    <div class="col-md-8">
+      <div class="recent-activity">
+        <h4 class="mb-4">
+          <i class="bi bi-clock-history"></i> Actividad Reciente
+        </h4>
+        
+        {% if actividad_reciente %}
+          {% for actividad in actividad_reciente %}
+          <div class="activity-item">
+            <div class="activity-icon {{ actividad.tipo }}">
+              <i class="bi bi-{{ actividad.icono }}"></i>
+            </div>
+            <div class="activity-content">
+              <div class="activity-title">{{ actividad.titulo }}</div>
+              <div class="activity-time">
+                <i class="bi bi-clock"></i> {{ actividad.fecha|timesince }} atrás
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="empty-state">
+            <i class="bi bi-inbox"></i>
+            <p>No hay actividad reciente</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <!-- Quick Actions -->
+      <div class="recent-activity">
+        <h5 class="mb-4">
+          <i class="bi bi-lightning-charge-fill"></i> Acciones Rápidas
+        </h5>
+        
+        <div class="d-grid gap-3">
+          {% if perms.sitio1.add_venta %}
+          <a href="{% url 'venta' %}" class="btn btn-success">
+            <i class="bi bi-cart-plus"></i> Nueva Venta
+          </a>
+          {% endif %}
+          
+          {% if perms.sitio1.add_productos %}
+          <a href="#" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Agregar Producto
+          </a>
+          {% endif %}
+          
+          {% if perms.sitio1.view_venta %}
+          <a href="{% url 'listar_ventas' %}" class="btn btn-info">
+            <i class="bi bi-receipt"></i> Ver Ventas
+          </a>
+          {% endif %}
+          
+          <a href="{% url 'dashboard_ia' %}" class="btn btn-warning">
+            <i class="bi bi-robot"></i> Predicciones IA
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Navegación de cards con data-url
+document.addEventListener('DOMContentLoaded', function() {
+  // Click en cards del menú
+  document.querySelectorAll('.menu-card[data-url]').forEach(card => {
+    card.addEventListener('click', function() {
+      const url = this.getAttribute('data-url');
+      if (url) {
+        window.location.href = url;
+      }
+    });
+  });
+
+  // Animación de entrada
+  const cards = document.querySelectorAll('.menu-card, .stat-card');
+  cards.forEach((card, index) => {
+    card.style.opacity = '0';
+    card.style.transform = 'translateY(20px)';
+    card.style.transition = 'all 0.5s ease-out';
+    
+    setTimeout(() => {
+      card.style.opacity = '1';
+      card.style.transform = 'translateY(0)';
+    }, index * 100);
+  });
+});
+</script>
+
+{% endblock %}

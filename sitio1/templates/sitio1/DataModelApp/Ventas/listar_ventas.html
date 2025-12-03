@@ -1,0 +1,539 @@
+{% extends 'sitio1/base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block content %}
+<style>
+  .ventas-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 30px;
+    border-radius: 15px;
+    margin-bottom: 30px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  }
+  
+  .ventas-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+  }
+  
+  .stat-card {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    transition: transform 0.3s;
+  }
+  
+  .stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+  }
+  
+  .stat-label {
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin-bottom: 5px;
+  }
+  
+  .stat-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #212529;
+  }
+  
+  .stat-icon {
+    font-size: 2.5rem;
+    opacity: 0.2;
+    float: right;
+  }
+  
+  .filters-card {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    margin-bottom: 25px;
+  }
+  
+  .table-container {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+  }
+  
+  .venta-row {
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .venta-row:hover {
+    background-color: #f8f9fa !important;
+    transform: scale(1.01);
+  }
+  
+  .detalle-venta {
+    background-color: #f8f9fa;
+  }
+  
+  .detalle-table {
+    background: white;
+    margin: 15px;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  
+  .badge-custom {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-weight: 600;
+  }
+  
+  .btn-action {
+    padding: 5px 12px;
+    font-size: 0.85rem;
+    border-radius: 6px;
+  }
+  
+  .search-box {
+    position: relative;
+  }
+  
+  .search-box input {
+    padding-left: 40px;
+  }
+  
+  .search-icon {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #adb5bd;
+  }
+  
+  .pagination-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 2px solid #e9ecef;
+  }
+  
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+  }
+  
+  .empty-state i {
+    font-size: 5rem;
+    color: #dee2e6;
+    margin-bottom: 20px;
+  }
+</style>
+
+<div class="container-fluid px-4">
+  <!-- Header -->
+  <div class="ventas-header">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <h2 class="mb-2"><i class="bi bi-receipt"></i> Historial de Ventas</h2>
+        <p class="mb-0 opacity-75">Gestión completa de todas las transacciones</p>
+      </div>
+      <div>
+        <a href="{% url 'venta' %}" class="btn btn-light btn-lg">
+          <i class="bi bi-plus-circle"></i> Nueva Venta
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Estadísticas -->
+  <div class="ventas-stats">
+    <div class="stat-card">
+      <i class="bi bi-cash-coin stat-icon text-success"></i>
+      <div class="stat-label">Total Ventas</div>
+      <div class="stat-value text-success">${{ total_ventas|floatformat:0|intcomma }}</div>
+      <small class="text-muted">{{ cantidad_ventas }} transacciones</small>
+    </div>
+    
+    <div class="stat-card">
+      <i class="bi bi-calendar-check stat-icon text-primary"></i>
+      <div class="stat-label">Hoy</div>
+      <div class="stat-value text-primary">${{ ventas_hoy|floatformat:0|intcomma }}</div>
+      <small class="text-muted">{{ cantidad_hoy }} ventas</small>
+    </div>
+    
+    <div class="stat-card">
+      <i class="bi bi-graph-up stat-icon text-info"></i>
+      <div class="stat-label">Promedio</div>
+      <div class="stat-value text-info">${{ ticket_promedio|floatformat:0|intcomma }}</div>
+      <small class="text-muted">por transacción</small>
+    </div>
+    
+    <div class="stat-card">
+      <i class="bi bi-clock-history stat-icon text-warning"></i>
+      <div class="stat-label">Última Venta</div>
+      <div class="stat-value text-warning">
+        {% if ultima_venta %}
+          {{ ultima_venta.fecha|timesince }}
+        {% else %}
+          -
+        {% endif %}
+      </div>
+      <small class="text-muted">hace</small>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="filters-card">
+    <form method="get" id="filtrosForm">
+      <div class="row g-3">
+        <div class="col-md-3">
+          <div class="search-box">
+            <i class="bi bi-search search-icon"></i>
+            <input 
+              type="text" 
+              name="q" 
+              class="form-control" 
+              placeholder="Buscar por ID, usuario..." 
+              value="{{ request.GET.q }}"
+            >
+          </div>
+        </div>
+        
+        <div class="col-md-2">
+          <input 
+            type="date" 
+            name="fecha_desde" 
+            class="form-control" 
+            placeholder="Desde"
+            value="{{ request.GET.fecha_desde }}"
+          >
+        </div>
+        
+        <div class="col-md-2">
+          <input 
+            type="date" 
+            name="fecha_hasta" 
+            class="form-control" 
+            placeholder="Hasta"
+            value="{{ request.GET.fecha_hasta }}"
+          >
+        </div>
+        
+        <div class="col-md-2">
+          <select name="medio_pago" class="form-select">
+            <option value="">Todos los medios</option>
+            <option value="efectivo" {% if request.GET.medio_pago == 'efectivo' %}selected{% endif %}>💵 Efectivo</option>
+            <option value="tarjeta" {% if request.GET.medio_pago == 'tarjeta' %}selected{% endif %}>💳 Tarjeta</option>
+            <option value="transferencia" {% if request.GET.medio_pago == 'transferencia' %}selected{% endif %}>🏦 Transferencia</option>
+          </select>
+        </div>
+        
+        <div class="col-md-2">
+          <select name="estado" class="form-select">
+            <option value="">Todos los estados</option>
+            <option value="completada" {% if request.GET.estado == 'completada' %}selected{% endif %}>Completada</option>
+            <option value="pendiente" {% if request.GET.estado == 'pendiente' %}selected{% endif %}>Pendiente</option>
+          </select>
+        </div>
+        
+        <div class="col-md-1">
+          <button type="submit" class="btn btn-primary w-100">
+            <i class="bi bi-funnel"></i>
+          </button>
+        </div>
+      </div>
+      
+      {% if request.GET.q or request.GET.fecha_desde or request.GET.medio_pago or request.GET.estado %}
+      <div class="mt-3">
+        <a href="{% url 'listar_ventas' %}" class="btn btn-sm btn-outline-secondary">
+          <i class="bi bi-x-circle"></i> Limpiar Filtros
+        </a>
+      </div>
+      {% endif %}
+    </form>
+  </div>
+
+  <!-- Tabla de Ventas -->
+  <div class="table-container">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h5 class="mb-0">
+        <i class="bi bi-list-ul"></i> Ventas 
+        <span class="badge bg-secondary">{{ ventas|length }}</span>
+      </h5>
+      <div>
+        <button class="btn btn-sm btn-outline-success" onclick="exportarExcel()">
+          <i class="bi bi-file-earmark-excel"></i> Exportar
+        </button>
+        <button class="btn btn-sm btn-outline-primary" onclick="imprimirReporte()">
+          <i class="bi bi-printer"></i> Imprimir
+        </button>
+      </div>
+    </div>
+
+    {% if ventas %}
+    <div class="table-responsive">
+      <table class="table table-hover align-middle">
+        <thead class="table-dark">
+          <tr>
+            <th width="80">ID</th>
+            <th>Fecha y Hora</th>
+            <th>Usuario</th>
+            <th class="text-end">Total</th>
+            <th>Medio de Pago</th>
+            <th>Estado</th>
+            <th>Productos</th>
+            <th class="text-center">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for venta in ventas %}
+          <tr class="venta-row" data-venta-id="{{ venta.id }}">
+            <td><strong>#{{ venta.id }}</strong></td>
+            <td>
+              <div>{{ venta.fecha|date:"d/m/Y" }}</div>
+              <small class="text-muted">{{ venta.fecha|date:"H:i" }} hrs</small>
+            </td>
+            <td>
+              <i class="bi bi-person-circle"></i> {{ venta.usuario.username }}
+            </td>
+            <td class="text-end">
+              <strong class="text-success">${{ venta.total|floatformat:0|intcomma }}</strong>
+            </td>
+            <td>
+              {% if venta.medio_pago == 'efectivo' %}
+                <span class="badge bg-success badge-custom">💵 Efectivo</span>
+              {% elif venta.medio_pago == 'tarjeta' %}
+                <span class="badge bg-primary badge-custom">💳 Tarjeta</span>
+              {% elif venta.medio_pago == 'transferencia' %}
+                <span class="badge bg-info badge-custom">🏦 Transferencia</span>
+              {% else %}
+                <span class="badge bg-secondary badge-custom">{{ venta.medio_pago }}</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if venta.estado == 'completada' %}
+                <span class="badge bg-success badge-custom">✓ Completada</span>
+              {% elif venta.estado == 'pendiente' %}
+                <span class="badge bg-warning badge-custom">⏳ Pendiente</span>
+              {% else %}
+                <span class="badge bg-secondary badge-custom">{{ venta.estado }}</span>
+              {% endif %}
+            </td>
+            <td>
+              <span class="badge bg-light text-dark">
+                {{ venta.detalles.count }} item{{ venta.detalles.count|pluralize }}
+              </span>
+            </td>
+            <td class="text-center">
+              <button 
+                class="btn btn-sm btn-outline-primary btn-action" 
+                onclick="toggleDetalle({{ venta.id }})"
+                id="btn-toggle-{{ venta.id }}"
+              >
+                <i class="bi bi-chevron-down"></i> Ver
+              </button>
+            </td>
+          </tr>
+          
+          <!-- Fila de Detalles -->
+          <tr class="detalle-venta" id="detalle-{{ venta.id }}" style="display: none;">
+            <td colspan="8" class="p-0">
+              <div class="detalle-table">
+                <div class="p-3 bg-light border-bottom">
+                  <strong><i class="bi bi-box-seam"></i> Detalle de Productos</strong>
+                </div>
+                <table class="table table-sm mb-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th>SKU</th>
+                      <th>Producto</th>
+                      <th class="text-end">Precio Unitario</th>
+                      <th class="text-center">Cantidad</th>
+                      <th class="text-end">Subtotal</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for detalle in venta.detalles.all %}
+                    <tr>
+                      <td>
+                        <code>{{ detalle.producto.sku|default:"N/A" }}</code>
+                      </td>
+                      <td>
+                        <strong>{{ detalle.producto.nombre }}</strong>
+                      </td>
+                      <td class="text-end">
+                        ${{ detalle.precio_unidad|floatformat:0|intcomma }}
+                      </td>
+                      <td class="text-center">
+                        <span class="badge bg-primary">{{ detalle.cantidad }}</span>
+                      </td>
+                      <td class="text-end">
+                        <strong>${{ detalle.subtotal|floatformat:0|intcomma }}</strong>
+                      </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                      <td colspan="5" class="text-center text-muted">
+                        No hay productos registrados
+                      </td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                  <tfoot class="table-light">
+                    <tr>
+                      <td colspan="4" class="text-end"><strong>TOTAL:</strong></td>
+                      <td class="text-end">
+                        <strong class="text-success fs-5">
+                          ${{ venta.total|floatformat:0|intcomma }}
+                        </strong>
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+                
+                <!-- Acciones adicionales -->
+                <div class="p-3 bg-light border-top d-flex justify-content-end gap-2">
+                  <button class="btn btn-sm btn-outline-primary" onclick="imprimirTicket({{ venta.id }})">
+                    <i class="bi bi-printer"></i> Imprimir Ticket
+                  </button>
+                  <button class="btn btn-sm btn-outline-info" onclick="verDetalleCompleto({{ venta.id }})">
+                    <i class="bi bi-eye"></i> Ver Completo
+                  </button>
+                </div>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Paginación -->
+    {% if ventas.has_other_pages %}
+    <div class="pagination-container">
+      <div>
+        Mostrando {{ ventas.start_index }} - {{ ventas.end_index }} de {{ ventas.paginator.count }} ventas
+      </div>
+      
+      <nav>
+        <ul class="pagination mb-0">
+          {% if ventas.has_previous %}
+            <li class="page-item">
+              <a class="page-link" href="?page=1{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">
+                <i class="bi bi-chevron-double-left"></i>
+              </a>
+            </li>
+            <li class="page-item">
+              <a class="page-link" href="?page={{ ventas.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">
+                <i class="bi bi-chevron-left"></i>
+              </a>
+            </li>
+          {% endif %}
+          
+          {% for num in ventas.paginator.page_range %}
+            {% if ventas.number == num %}
+              <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+            {% elif num > ventas.number|add:'-3' and num < ventas.number|add:'3' %}
+              <li class="page-item">
+                <a class="page-link" href="?page={{ num }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">{{ num }}</a>
+              </li>
+            {% endif %}
+          {% endfor %}
+          
+          {% if ventas.has_next %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ ventas.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">
+                <i class="bi bi-chevron-right"></i>
+              </a>
+            </li>
+            <li class="page-item">
+              <a class="page-link" href="?page={{ ventas.paginator.num_pages }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">
+                <i class="bi bi-chevron-double-right"></i>
+              </a>
+            </li>
+          {% endif %}
+        </ul>
+      </nav>
+    </div>
+    {% endif %}
+    
+    {% else %}
+    <!-- Estado vacío -->
+    <div class="empty-state">
+      <i class="bi bi-inbox"></i>
+      <h4>No se encontraron ventas</h4>
+      <p class="text-muted">
+        {% if request.GET.q or request.GET.fecha_desde %}
+          Intenta ajustar los filtros de búsqueda
+        {% else %}
+          Aún no hay ventas registradas
+        {% endif %}
+      </p>
+      <a href="{% url 'venta' %}" class="btn btn-primary mt-3">
+        <i class="bi bi-plus-circle"></i> Realizar Primera Venta
+      </a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+// Toggle detalles de venta
+function toggleDetalle(ventaId) {
+  const detalle = document.getElementById(`detalle-${ventaId}`);
+  const btn = document.getElementById(`btn-toggle-${ventaId}`);
+  const icon = btn.querySelector('i');
+  
+  if (detalle.style.display === 'none') {
+    detalle.style.display = 'table-row';
+    icon.classList.remove('bi-chevron-down');
+    icon.classList.add('bi-chevron-up');
+    btn.innerHTML = '<i class="bi bi-chevron-up"></i> Ocultar';
+  } else {
+    detalle.style.display = 'none';
+    icon.classList.remove('bi-chevron-up');
+    icon.classList.add('bi-chevron-down');
+    btn.innerHTML = '<i class="bi bi-chevron-down"></i> Ver';
+  }
+}
+
+// Imprimir ticket individual
+function imprimirTicket(ventaId) {
+  window.open(`/sitio1/venta/${ventaId}/ticket/`, '_blank');
+}
+
+// Ver detalle completo (modal o nueva página)
+function verDetalleCompleto(ventaId) {
+  window.location.href = `/sitio1/venta/${ventaId}/detalle/`;
+}
+
+// Exportar a Excel
+function exportarExcel() {
+  const params = new URLSearchParams(window.location.search);
+  params.append('export', 'excel');
+  window.location.href = `?${params.toString()}`;
+}
+
+// Imprimir reporte
+function imprimirReporte() {
+  window.print();
+}
+
+// Auto-submit de filtros con delay
+let filterTimeout;
+document.getElementById('filtrosForm').addEventListener('input', function() {
+  clearTimeout(filterTimeout);
+  filterTimeout = setTimeout(() => {
+    this.submit();
+  }, 800);
+});
+</script>
+
+{% endblock %}

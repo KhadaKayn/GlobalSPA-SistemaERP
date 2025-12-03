@@ -1,0 +1,108 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Principal</title>
+  <link rel="icon" type="image/png" href="{% static 'Img/logo.webp' %}">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'estilo/styles.css' %}?v=100">
+  {% block css %}{% endblock %}
+
+</head>
+<body>
+  
+  <header>
+    <div class="ladoizquierdo">
+      <div class="menu-container">
+        <div class="menu" id="menu">
+          <div></div>
+          <div></div>
+          <div></div>
+        </div>
+      </div>
+      <div class="logo">
+        <a href="{% url 'home' %}">
+          <img src="{% static 'Img/logo.webp' %}" alt="Logo">
+        </a>
+        <span> Global SPa</span>
+      </div>
+    </div>
+
+   <div class="ladoderecho">
+  <div class="perfiluser">
+    <img
+      src="{% if request.user.usuario.imagen %}{{ request.user.usuario.imagen.url }}{% else %}{% static 'Img/gatocorbata.webp' %}{% endif %}"
+      alt="Perfil"
+      id="perfil-img"
+    >
+    <span>{{ user.username }}</span>
+
+    <!-- Menú desplegable -->
+    <div class="menu-desplegable" id="menu-desplegable">
+      <a href="{% url 'ver_perfil' %}">Editar perfil</a>
+      <a href="{% url 'logout' %}">Cerrar sesión</a>
+    </div>
+  </div>
+</div>
+
+  </header>
+  
+  <div class="sidebar" id="sidebar">
+    <nav>
+      <ul>
+        <li>
+          <a href="{% url 'listar_ventas' %}" class="selected">
+            <img src="{% static 'Img/icons/box-svgrepo-com.svg' %}" alt="">
+            <span>Ventas</span>
+          </a>
+        </li>
+        <li>
+          <a href="{% url 'productos' %}" class="icons-header">
+            <img src="{% static 'Img/icons/box-svgrepo-com.svg' %}" alt="">
+            <span>Productos</span>
+          </a>
+        </li>
+        <li>
+          <a href="{% url 'gestion' %}" class="icons-header">
+            <img src="{% static 'Img/icons/stock-svgrepo-com.svg' %}" alt="">
+            <span>Gestión</span>
+          </a>
+        </li>
+        
+        <li>
+          <a href="{% url 'panel_analytics_ia' %}" class="icons-header">
+            <img src="{% static 'Img/icons/database-svgrepo-com.svg' %}" alt="">
+            <span>Analisís</span>
+          </a>
+        </li>
+        
+        <li>
+          <a href="{%url 'ver_perfil'%}" class="icons-header">
+            <img src="{% static 'Img/icons/config-svgrepo-com.svg' %}" alt="">
+            <span>Editar perfil</span>
+          </a>
+        </li>
+      </ul>
+      <div class="perfiluser">
+        <span>{{ user.username }}</span>
+      </div>
+    </nav>
+  </div>
+
+  <div class="layout">
+    <main id="main">
+      {% block content %}
+      {% endblock %}
+    </main>
+  </div>
+
+  <script src="{% static 'JS/main.js' %}"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  
+</body>
+</html>

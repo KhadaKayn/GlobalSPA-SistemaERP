@@ -1,0 +1,271 @@
+{% extends 'sitio1/base.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <a href="{% url 'lista_ordenes_compra' %}" class="btn btn-secondary btn-sm">← Volver a Órdenes</a>
+        <h3 class="d-inline-block ms-3 mb-0">📋 Orden {{ orden.numero_orden }}</h3>
+    </div>
+    <div>
+        <span class="badge bg-{% if orden.estado == 'borrador' %}secondary{% elif orden.estado == 'aprobada' %}success{% elif orden.estado == 'enviada' %}info{% else %}primary{% endif %} fs-6">
+            {{ orden.get_estado_display }}
+        </span>
+    </div>
+</div>
+
+{% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+{% endif %}
+
+<!-- Info General -->
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">📊 Información General</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-sm table-borderless">
+                            <tr>
+                                <td><strong>Fecha Creación:</strong></td>
+                                <td>{{ orden.fecha_creacion|date:"d/m/Y H:i" }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Creado por:</strong></td>
+                                <td>{{ orden.creado_por.get_full_name }}</td>
+                            </tr>
+                            {% if orden.aprobado_por %}
+                            <tr>
+                                <td><strong>Aprobado por:</strong></td>
+                                <td>{{ orden.aprobado_por.get_full_name }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Fecha Aprobación:</strong></td>
+                                <td>{{ orden.fecha_aprobacion|date:"d/m/Y H:i" }}</td>
+                            </tr>
+                            {% endif %}
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-sm table-borderless">
+                            <tr>
+                                <td><strong>Total Productos:</strong></td>
+                                <td><span class="badge bg-primary">{{ orden.total_productos }}</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Total Unidades:</strong></td>
+                                <td><span class="badge bg-info">{{ orden.total_unidades }}</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Total Estimado:</strong></td>
+                                <td><strong class="text-success fs-5">${{ orden.total_estimado|floatformat:0|intcomma }}</strong></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                {% if orden.observaciones_ia %}
+                <hr>
+                <h6>🤖 Análisis IA:</h6>
+                <pre class="bg-light p-3 rounded" style="font-size: 0.85rem;">{{ orden.observaciones_ia }}</pre>
+                {% endif %}
+
+                {% if orden.observaciones_usuario %}
+                <hr>
+                <h6>📝 Observaciones Usuario:</h6>
+                <div class="alert alert-info mb-0">{{ orden.observaciones_usuario }}</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">⚡ Acciones Rápidas</h5>
+            </div>
+            <div class="card-body">
+                {% if puede_aprobar %}
+                <form method="post" class="mb-2">
+                    {% csrf_token %}
+                    <input type="hidden" name="accion" value="aprobar">
+                    <button type="submit" class="btn btn-success w-100" onclick="return confirm('¿Aprobar esta orden?')">
+                        ✅ Aprobar Orden
+                    </button>
+                </form>
+                {% endif %}
+
+                {% if puede_enviar %}
+                <form method="post" class="mb-2">
+                    {% csrf_token %}
+                    <input type="hidden" name="accion" value="enviar_email">
+                    <button type="submit" class="btn btn-primary w-100" onclick="return confirm('¿Enviar email a proveedor(es)?')">
+                        📧 Enviar por Email
+                    </button>
+                </form>
+                {% endif %}
+
+                <button class="btn btn-secondary w-100 mb-2" onclick="window.print()">
+                    🖨️ Imprimir
+                </button>
+
+                {% if orden.email_enviado %}
+                <div class="alert alert-success mt-3 mb-0">
+                    <small>
+                        <strong>✅ Email Enviado</strong><br>
+                        {{ orden.email_enviado_fecha|date:"d/m/Y H:i" }}
+                    </small>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Historial -->
+        {% if logs %}
+        <div class="card mt-3">
+            <div class="card-header">
+                <h6 class="mb-0">📜 Historial</h6>
+            </div>
+            <div class="card-body p-2">
+                <div class="list-group list-group-flush">
+                    {% for log in logs %}
+                    <div class="list-group-item p-2">
+                        <small>
+                            <strong>{{ log.accion|upper }}</strong><br>
+                            {{ log.usuario.get_full_name }}<br>
+                            <span class="text-muted">{{ log.fecha|date:"d/m/Y H:i" }}</span>
+                        </small>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Items por Proveedor -->
+<form method="post" id="form-editar">
+    {% csrf_token %}
+    <input type="hidden" name="accion" value="actualizar_cantidades">
+
+    {% for proveedor_nombre, datos in items_por_proveedor.items %}
+    <div class="card mb-4">
+        <div class="card-header bg-secondary text-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    🏭 {{ proveedor_nombre }}
+                    {% if datos.proveedor.correo %}
+                        <small class="ms-2">({{ datos.proveedor.correo }})</small>
+                    {% endif %}
+                </h5>
+                <span class="badge bg-light text-dark fs-6">
+                    ${{ datos.total|floatformat:0|intcomma }}
+                </span>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 5%">#</th>
+                            <th style="width: 25%">Producto</th>
+                            <th style="width: 10%">Stock Actual</th>
+                            <th style="width: 12%">Demanda 14d</th>
+                            <th style="width: 10%">Días Agot.</th>
+                            <th style="width: 10%">IA Sugiere</th>
+                            <th style="width: 12%">Cantidad</th>
+                            <th style="width: 10%">Precio Unit.</th>
+                            <th style="width: 10%" class="text-end">Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in datos.items %}
+                        <tr class="{% if item.nivel_criticidad == 'critico' %}table-danger{% elif item.nivel_criticidad == 'preventivo' %}table-warning{% endif %}">
+                            <td>{{ forloop.counter }}</td>
+                            <td>
+                                <strong>{{ item.producto.nombre }}</strong><br>
+                                <small class="text-muted">SKU: {{ item.producto.sku|default:"N/A" }}</small>
+                            </td>
+                            <td>
+                                <span class="badge bg-{% if item.stock_actual < 10 %}danger{% elif item.stock_actual < 50 %}warning{% else %}success{% endif %}">
+                                    {{ item.stock_actual }}
+                                </span>
+                            </td>
+                            <td>{{ item.demanda_estimada_14d }}</td>
+                            <td>
+                                {% if item.dias_hasta_agotamiento < 999 %}
+                                    <span class="text-{% if item.dias_hasta_agotamiento < 3 %}danger{% elif item.dias_hasta_agotamiento < 7 %}warning{% else %}success{% endif %}">
+                                        {{ item.dias_hasta_agotamiento }}d
+                                    </span>
+                                {% else %}
+                                    <span class="text-muted">∞</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge bg-info">{{ item.cantidad_sugerida_ia }}</span>
+                            </td>
+                            <td>
+                                {% if puede_editar %}
+                                <input type="number" 
+                                       name="cantidad_{{ item.id }}" 
+                                       value="{{ item.cantidad_solicitada }}"
+                                       min="1"
+                                       class="form-control form-control-sm"
+                                       data-precio="{{ item.precio_unitario }}"
+                                       data-item="{{ item.id }}"
+                                       onchange="calcularSubtotal(this)">
+                                {% else %}
+                                <strong>{{ item.cantidad_solicitada }}</strong>
+                                {% endif %}
+                            </td>
+                            <td>${{ item.precio_unitario|floatformat:0|intcomma }}</td>
+                            <td class="text-end">
+                                <strong id="subtotal_{{ item.id }}">${{ item.subtotal|floatformat:0|intcomma }}</strong>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot class="table-secondary">
+                        <tr>
+                            <td colspan="8" class="text-end"><strong>Subtotal Proveedor:</strong></td>
+                            <td class="text-end"><strong class="fs-5">${{ datos.total|floatformat:0|intcomma }}</strong></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+    {% if puede_editar %}
+    <div class="text-center mb-4">
+        <button type="submit" class="btn btn-primary btn-lg">
+            💾 Guardar Cambios
+        </button>
+    </div>
+    {% endif %}
+</form>
+
+<script>
+function calcularSubtotal(input) {
+    const itemId = input.dataset.item;
+    const precio = parseFloat(input.dataset.precio);
+    const cantidad = parseInt(input.value) || 0;
+    const subtotal = precio * cantidad;
+    
+    document.getElementById('subtotal_' + itemId).textContent = 
+        '$' + subtotal.toLocaleString('es-CL', {maximumFractionDigits: 0});
+}
+</script>
+
+{% endblock %}

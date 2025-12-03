@@ -1,0 +1,46 @@
+{% extends 'sitio1/base.html' %}
+{% load static %}
+
+{% block css %}
+<style>
+    body {
+        background-image: url("{% static 'sitio1/imagenes/FondoVADmin.jpg' %}");
+        background-size: cover;
+        background-position: center;
+        min-height: 100vh;
+        padding: 40px;
+        color: #fff;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .confirm-box {
+        background-color: rgba(0, 0, 0, 0.8);
+        padding: 30px;
+        border-radius: 15px;
+        text-align: center;
+        width: 400px;
+    }
+
+    .confirm-box h2 {
+        margin-bottom: 20px;
+    }
+
+    .btn {
+        margin: 10px;
+        width: 120px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="confirm-box">
+    <h2>¿Eliminar la categoría "{{ categoria.nombre }}"?</h2>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Eliminar</button>
+        <a href="{% url 'listar_categorias' %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

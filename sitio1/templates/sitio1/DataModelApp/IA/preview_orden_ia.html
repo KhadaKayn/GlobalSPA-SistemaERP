@@ -1,0 +1,139 @@
+{% extends 'sitio1/base.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="{% url 'dashboard_ia' %}" class="btn btn-secondary btn-sm">← Volver a Dashboard IA</a>
+</div>
+
+<div class="card border-primary mb-4">
+    <div class="card-header bg-primary text-white">
+        <h4 class="mb-0">🤖 Generar Orden de Compra Automática</h4>
+    </div>
+    <div class="card-body">
+
+        <div class="alert alert-info">
+            <h5>📋 ¿Qué hará el sistema?</h5>
+            <ol class="mb-0">
+                <li>Analizar productos críticos y preventivos</li>
+                <li>Calcular cantidades óptimas según IA</li>
+                <li>Agrupar por proveedor</li>
+                <li>Crear la orden en estado BORRADOR</li>
+                <li>Permitir edición antes de enviar a proveedor</li>
+            </ol>
+        </div>
+
+        <div class="row text-center mb-4">
+            <div class="col-md-4">
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <h2 class="text-primary">{{ total_productos }}</h2>
+                        <p class="mb-0">Productos con alertas</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-danger text-white">
+                    <div class="card-body">
+                        <h2>{{ total_criticos }}</h2>
+                        <p class="mb-0">Alertas Críticas</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-warning">
+                    <div class="card-body">
+                        <h2>{{ total_preventivos }}</h2>
+                        <p class="mb-0">Alertas Preventivas</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if alertas %}
+        <h5 class="mb-3">👀 Vista Previa de Productos a Incluir:</h5>
+
+        <div class="table-responsive">
+            <table class="table table-sm table-hover">
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Proveedor</th>
+                        <th>Criticidad</th>
+                        <th>Stock Actual</th>
+                        <th>Demanda 14d</th>
+                        <th>Déficit</th>
+                        <th>Stock Seg.</th>
+                        <th>Cantidad Sugerida</th>
+                        <th>Precio Unit.</th>
+                        <th>Subtotal</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for alerta in alertas %}
+                    <tr>
+                        <td><strong>{{ alerta.producto.nombre }}</strong></td>
+
+                        <td>
+                            {% if alerta.producto.proveedor %}
+                                <small>{{ alerta.producto.proveedor.nombre }}</small>
+                            {% else %}
+                                <small class="text-muted">Sin proveedor</small>
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            <span class="badge bg-{% if alerta.tipo == 'critico' %}danger{% else %}warning{% endif %}">
+                                {{ alerta.tipo|upper }}
+                            </span>
+                        </td>
+
+                        <td>{{ alerta.stock }}</td>
+                        <td>{{ alerta.demanda }}</td>
+                        <td>{{ alerta.deficit }}</td>
+                        <td>{{ alerta.stock_seguridad }}</td>
+
+                        <td>
+                            <strong class="text-primary">{{ alerta.cantidad_sugerida }}</strong>
+                        </td>
+
+                        <td>${{ alerta.precio|floatformat:0|intcomma }}</td>
+
+                        <td>
+                            <strong>${{ alerta.subtotal|floatformat:0|intcomma }}</strong>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+
+            </table>
+        </div>
+
+        <div class="alert alert-warning mt-4">
+            <h6>⚠️ Importante:</h6>
+            <ul class="mb-0">
+                <li>La orden se crea como <strong>BORRADOR</strong></li>
+                <li>Puedes <strong>editar cantidades</strong> antes de aprobar</li>
+                <li>El email NO se enviará automáticamente</li>
+                <li>Debes aprobar la orden manualmente</li>
+            </ul>
+        </div>
+
+        <form method="post" class="text-center mt-4">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-primary btn-lg">
+                ✅ Generar Orden de Compra
+            </button>
+        </form>
+
+        {% else %}
+        <div class="alert alert-success">
+            <h5>✅ No hay productos con alertas críticas o preventivas</h5>
+            <p class="mb-0">Los niveles de stock están óptimos según IA.</p>
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+{% endblock %}

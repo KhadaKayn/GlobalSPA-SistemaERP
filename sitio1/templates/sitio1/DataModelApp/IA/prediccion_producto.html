@@ -1,0 +1,390 @@
+{% extends 'sitio1/base.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="{% url 'dashboard_ia' %}" class="btn btn-secondary btn-sm">← Volver al Dashboard IA</a>
+</div>
+
+{% if resultado %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header bg-{% if resultado.nivel_criticidad == 'crítico' %}danger{% elif resultado.nivel_criticidad == 'alto' %}warning{% elif resultado.nivel_criticidad == 'medio' %}info{% else %}success{% endif %} text-white">
+                <h4 class="mb-0">🔮 Predicción de Demanda - {{ resultado.producto.nombre }}</h4>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h6 class="text-muted">Stock Actual</h6>
+                            <h2 class="{% if resultado.alerta %}text-danger{% else %}text-success{% endif %}">
+                                {{ resultado.stock_actual }}
+                            </h2>
+                            <small>unidades</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h6 class="text-muted">Demanda Estimada (14 días)</h6>
+                            <h2 class="text-primary">{{ resultado.total_estimado }}</h2>
+                            <small>unidades</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h6 class="text-muted">Días hasta Agotamiento</h6>
+                            <h2 class="{% if resultado.dias_agotamiento < 3 %}text-danger{% elif resultado.dias_agotamiento < 7 %}text-warning{% else %}text-success{% endif %}">
+                                {% if resultado.dias_agotamiento < 999 %}
+                                    {{ resultado.dias_agotamiento }}
+                                {% else %}
+                                    ∞
+                                {% endif %}
+                            </h2>
+                            <small>días</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h6 class="text-muted">Velocidad Promedio</h6>
+                            <h2 class="text-info">{{ resultado.velocidad_diaria }}</h2>
+                            <small>unidades/día</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Alerta Crítica -->
+                {% if resultado.alerta %}
+                <div class="alert alert-danger">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <h1 class="mb-0">⚠️</h1>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h5 class="alert-heading">Alerta Crítica de Stock</h5>
+                            <p class="mb-2">
+                                La demanda estimada <strong>({{ resultado.total_estimado }} unidades)</strong> 
+                                supera el stock actual <strong>({{ resultado.stock_actual }} unidades)</strong>.
+                            </p>
+                            <hr>
+                            <p class="mb-0">
+                                <strong>🚨 Déficit:</strong> {{ resultado.deficit }} unidades<br>
+                                <strong>📦 Cantidad a comprar:</strong> 
+                                <span class="badge bg-dark fs-6">{{ resultado.deficit|add:"10" }} unidades</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="alert alert-success">
+                    <h6>✅ Stock Suficiente</h6>
+                    <p class="mb-0">El stock actual cubre la demanda estimada de 14 días.</p>
+                </div>
+                {% endif %}
+
+                <!-- Gráfico de predicción -->
+                <h5 class="mt-4">📈 Predicción Diaria (Próximos 14 días)</h5>
+                <canvas id="chartPrediccion"></canvas>
+
+                <!-- Análisis de tendencias -->
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6 class="card-title">📊 Estadísticas</h6>
+                                <ul class="list-unstyled mb-0">
+                                    <li><strong>Promedio diario:</strong> {{ resultado.velocidad_diaria }} unidades</li>
+                                    <li><strong>Total 14 días:</strong> {{ resultado.total_estimado }} unidades</li>
+                                    <li><strong>Confianza:</strong> Alta (R² > 0.7)</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6 class="card-title">🎯 Criticidad</h6>
+                                <div class="text-center">
+                                    {% if resultado.nivel_criticidad == 'crítico' %}
+                                        <span class="badge bg-danger fs-4">CRÍTICO</span>
+                                        <p class="mb-0 mt-2"><small>< 3 días</small></p>
+                                    {% elif resultado.nivel_criticidad == 'alto' %}
+                                        <span class="badge bg-warning fs-4">ALTO</span>
+                                        <p class="mb-0 mt-2"><small>3-7 días</small></p>
+                                    {% elif resultado.nivel_criticidad == 'medio' %}
+                                        <span class="badge bg-info fs-4">MEDIO</span>
+                                        <p class="mb-0 mt-2"><small>7-14 días</small></p>
+                                    {% else %}
+                                        <span class="badge bg-success fs-4">BAJO</span>
+                                        <p class="mb-0 mt-2"><small>> 14 días</small></p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla de predicciones diarias -->
+        <div class="card">
+            <div class="card-header">
+                <h5>📅 Detalle de Predicciones Diarias</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Día</th>
+                                <th class="text-end">Unidades Estimadas</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for pred in resultado.predicciones_diarias %}
+                            <tr>
+                                <td>{{ pred.fecha|date:"d/m/Y" }}</td>
+                                <td>
+                                    {% if pred.fecha.weekday == 0 %}Lunes
+                                    {% elif pred.fecha.weekday == 1 %}Martes
+                                    {% elif pred.fecha.weekday == 2 %}Miércoles
+                                    {% elif pred.fecha.weekday == 3 %}Jueves
+                                    {% elif pred.fecha.weekday == 4 %}Viernes
+                                    {% elif pred.fecha.weekday == 5 %}Sábado
+                                    {% else %}Domingo
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    <span class="badge bg-primary">{{ pred.cantidad_estimada }}</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot class="table-secondary">
+                            <tr>
+                                <td colspan="2"><strong>Total Estimado</strong></td>
+                                <td class="text-end">
+                                    <strong>{{ resultado.total_estimado }} unidades</strong>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel lateral -->
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">📦 Información del Producto</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm table-borderless">
+                    <tr>
+                        <td><strong>Nombre:</strong></td>
+                        <td>{{ resultado.producto.nombre }}</td>
+                    </tr>
+                    {% if resultado.producto.sku %}
+                    <tr>
+                        <td><strong>SKU:</strong></td>
+                        <td><code>{{ resultado.producto.sku }}</code></td>
+                    </tr>
+                    {% endif %}
+                    <tr>
+                        <td><strong>Categoría:</strong></td>
+                        <td><span class="badge bg-secondary">{{ resultado.producto.categoria.nombre }}</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Precio:</strong></td>
+                        <td><strong class="text-success">${{ resultado.producto.precio_unitario|floatformat:0|intcomma }}</strong></td>
+                    </tr>
+                    {% if resultado.producto.costo_unitario %}
+                    <tr>
+                        <td><strong>Costo:</strong></td>
+                        <td>${{ resultado.producto.costo_unitario|floatformat:0|intcomma }}</td>
+                    </tr>
+                    {% endif %}
+                    <tr>
+                        <td><strong>Stock actual:</strong></td>
+                        <td><strong class="fs-5">{{ resultado.producto.stock_actual }}</strong></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Stock mínimo:</strong></td>
+                        <td>{{ resultado.producto.stock_minimo|default:"No definido" }}</td>
+                    </tr>
+                    {% if resultado.producto.proveedor %}
+                    <tr>
+                        <td><strong>Proveedor:</strong></td>
+                        <td>{{ resultado.producto.proveedor.nombre }}</td>
+                    </tr>
+                    {% endif %}
+                </table>
+            </div>
+        </div>
+
+        <!-- Recomendaciones -->
+        <div class="card mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">💡 Recomendaciones IA</h5>
+            </div>
+            <div class="card-body">
+                {% if resultado.alerta %}
+                    <h6 class="text-danger">🚨 Acción Inmediata</h6>
+                    <ol class="mb-3">
+                        <li>Contactar proveedor</li>
+                        <li>Verificar tiempo de entrega</li>
+                        <li>Evaluar proveedores alternativos</li>
+                    </ol>
+                    
+                    <div class="alert alert-dark mb-0">
+                        <strong>📦 Reabastecimiento:</strong><br>
+                        <div class="d-flex justify-content-between mt-2">
+                            <span>Déficit:</span>
+                            <span class="badge bg-danger">{{ resultado.deficit }} unidades</span>
+                        </div>
+                        <div class="d-flex justify-content-between mt-1">
+                            <span>Seguridad:</span>
+                            <span class="badge bg-secondary">+10 unidades</span>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between">
+                            <strong>TOTAL:</strong>
+                            <strong class="text-danger fs-5">{{ resultado.deficit|add:"10" }}</strong>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="text-success">
+                        <h6>✅ Stock Óptimo</h6>
+                        <p class="mb-0">No se requieren acciones inmediatas.</p>
+                    </div>
+                {% endif %}
+                
+                <hr>
+                
+                <h6 class="mb-2">🤖 Sobre el Modelo</h6>
+                <small class="text-muted">
+                    <ul class="mb-0" style="font-size: 0.85rem;">
+                        <li>Random Forest (100 árboles)</li>
+                        <li>11 features temporales</li>
+                        <li>90 días de entrenamiento</li>
+                        <li>Validación cruzada 5-fold</li>
+                    </ul>
+                </small>
+            </div>
+        </div>
+
+        <!-- Acciones rápidas -->
+        <div class="card">
+            <div class="card-body">
+                <h6>⚡ Acciones</h6>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-sm btn-primary" onclick="window.print()">
+                        🖨️ Imprimir
+                    </button>
+                    <a href="{% url 'dashboard_ia' %}" class="btn btn-sm btn-secondary">
+                        📊 Ver Alertas
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Data para gráfico -->
+{{ labels_prediccion|json_script:"labels-prediccion" }}
+{{ data_prediccion|json_script:"data-prediccion" }}
+<script id="stock-actual" type="application/json">{{ resultado.stock_actual }}</script>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const labels = JSON.parse(document.getElementById('labels-prediccion').textContent);
+    const data = JSON.parse(document.getElementById('data-prediccion').textContent);
+    const stockActual = parseInt(document.getElementById('stock-actual').textContent);
+    
+    // Línea de stock actual
+    const stockLine = Array(labels.length).fill(stockActual);
+    
+    new Chart(document.getElementById("chartPrediccion"), {
+        type: "line",
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: "Demanda Estimada (unidades/día)",
+                    data: data,
+                    borderColor: "rgba(54, 162, 235, 1)",
+                    backgroundColor: "rgba(54, 162, 235, 0.2)",
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4
+                },
+                {
+                    label: "Stock Actual (referencia)",
+                    data: stockLine,
+                    borderColor: "rgba(255, 99, 132, 1)",
+                    backgroundColor: "transparent",
+                    borderWidth: 2,
+                    borderDash: [10, 5],
+                    fill: false,
+                    pointRadius: 0
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Unidades'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Fecha'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                },
+                tooltip: {
+                    callbacks: {
+                        afterLabel: function(context) {
+                            if (context.datasetIndex === 0) {
+                                const acumulado = data.slice(0, context.dataIndex + 1)
+                                    .reduce((a, b) => a + b, 0);
+                                return `Acumulado: ${acumulado} unidades`;
+                            }
+                            return '';
+                        }
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+
+{% else %}
+<div class="alert alert-warning">
+    <h4>⚠️ No se pudo generar predicción</h4>
+    <p>El modelo aún no está entrenado o no hay datos suficientes.</p>
+    <a href="{% url 'dashboard_ia' %}?entrenar=1" class="btn btn-primary">
+        🧠 Entrenar Modelo
+    </a>
+</div>
+{% endif %}
+
+{% endblock %}

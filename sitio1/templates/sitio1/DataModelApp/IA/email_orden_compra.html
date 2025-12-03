@@ -1,0 +1,209 @@
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orden de Compra {{ orden.numero_orden }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px 10px 0 0;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+        .info-box {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .proveedor-info {
+            background: #fff;
+            border: 2px solid #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+        }
+        thead {
+            background: #667eea;
+            color: white;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 12px;
+        }
+        tbody tr:hover {
+            background: #f8f9fa;
+        }
+        .total-row {
+            background: #f8f9fa;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        .footer {
+            background: #f8f9fa;
+            padding: 20px;
+            margin-top: 30px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+        }
+        .badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+            display: inline-block;
+        }
+        .badge-danger {
+            background: #dc3545;
+            color: white;
+        }
+        .badge-warning {
+            background: #ffc107;
+            color: #000;
+        }
+        .alert {
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .alert-info {
+            background: #d1ecf1;
+            border-left: 4px solid #0c5460;
+            color: #0c5460;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📦 Orden de Compra</h1>
+        <p style="margin: 10px 0 0 0; font-size: 24px;">{{ orden.numero_orden }}</p>
+    </div>
+
+    <div class="proveedor-info">
+        <h2 style="margin-top: 0; color: #667eea;">Estimado(a) {{ proveedor.nombre }}</h2>
+        <p>Por medio del presente, solicitamos formalmente la cotización y/o suministro de los siguientes productos:</p>
+        {% if proveedor.telefono %}
+        <p><strong>Teléfono:</strong> {{ proveedor.telefono }}</p>
+        {% endif %}
+    </div>
+
+    <div class="info-box">
+        <table style="margin: 0; border: none;">
+            <tr>
+                <td><strong>Fecha Orden:</strong></td>
+                <td>{{ orden.fecha_creacion|date:"d/m/Y H:i" }}</td>
+            </tr>
+            <tr>
+                <td><strong>Solicitado por:</strong></td>
+                <td>{{ orden.creado_por.get_full_name }}</td>
+            </tr>
+            {% if orden.creado_por.email %}
+            <tr>
+                <td><strong>Email contacto:</strong></td>
+                <td><a href="mailto:{{ orden.creado_por.email }}">{{ orden.creado_por.email }}</a></td>
+            </tr>
+            {% endif %}
+        </table>
+    </div>
+
+    <h3 style="color: #667eea;">📋 Detalle de Productos</h3>
+
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Producto</th>
+                <th>SKU</th>
+                <th>Cantidad</th>
+                <th>Precio Unit.</th>
+                <th style="text-align: right;">Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>
+                    <strong>{{ item.producto.nombre }}</strong>
+                    {% if item.nivel_criticidad == 'critico' %}
+                        <span class="badge badge-danger">URGENTE</span>
+                    {% elif item.nivel_criticidad == 'preventivo' %}
+                        <span class="badge badge-warning">PREVENTIVO</span>
+                    {% endif %}
+                </td>
+                <td>{{ item.producto.sku|default:"N/A" }}</td>
+                <td>{{ item.cantidad_solicitada }} unidades</td>
+                <td>${{ item.precio_unitario|floatformat:0|intcomma }}</td>
+                <td style="text-align: right;"><strong>${{ item.subtotal|floatformat:0|intcomma }}</strong></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr class="total-row">
+                <td colspan="3"></td>
+                <td><strong>{{ total_unidades }} unidades</strong></td>
+                <td><strong>TOTAL:</strong></td>
+                <td style="text-align: right; font-size: 18px; color: #28a745;">
+                    <strong>${{ total|floatformat:0|intcomma }}</strong>
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+
+    {% if orden.observaciones_usuario %}
+    <div class="alert alert-info">
+        <h4>📝 Observaciones:</h4>
+        <p>{{ orden.observaciones_usuario|linebreaks }}</p>
+    </div>
+    {% endif %}
+
+    <div class="info-box">
+        <h4>⚡ Próximos Pasos:</h4>
+        <ol>
+            <li>Confirmar disponibilidad de productos</li>
+            <li>Indicar tiempo estimado de entrega</li>
+            <li>Enviar cotización formal si corresponde</li>
+            <li>Coordinar fecha y hora de despacho/recepción</li>
+        </ol>
+    </div>
+
+    <div class="footer">
+        <p><strong>🤖 Orden generada automáticamente por Sistema de Gestión Inteligente</strong></p>
+        <p>Responder a este email o contactar a {{ orden.creado_por.get_full_name }}</p>
+        <hr>
+        <small style="color: #999;">
+            Email automático · No responder directamente<br>
+            Orden N° {{ orden.numero_orden }} | Fecha: {{ orden.fecha_creacion|date:"d/m/Y" }}
+        </small>
+    </div>
+</body>
+</html>

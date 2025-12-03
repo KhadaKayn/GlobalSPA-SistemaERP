@@ -1,0 +1,61 @@
+{% extends 'sitio1/base.html' %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+{% block css %}
+<style>
+    body {
+        background-image: url("{% static 'sitio1/imagenes/FondoVADmin.jpg' %}");
+        background-size: cover;
+        background-position: center;
+        min-height: 100vh;
+        padding: 40px;
+        color: #fff;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .form-container {
+        background-color: rgba(0, 0, 0, 0.7);
+        padding: 30px;
+        border-radius: 15px;
+        width: 400px;
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+    }
+
+    h2 {
+        text-align: center;
+        margin-bottom: 25px;
+        text-shadow: 0 0 10px #000;
+    }
+
+    .btn {
+        width: 100%;
+        margin-top: 10px;
+    }
+
+    .btn-back {
+        background-color: #828282;
+        border-color: #808080;
+    }
+
+    .btn-back:hover {
+        background-color: #ff0000;
+        color: black;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <h2>{{ accion }} Ubicación</h2>
+
+    <form method="post">
+        {% csrf_token %}
+        {{ form|crispy }}
+        <button type="submit" class="btn btn-primary">Guardar</button>
+        <a href="{% url 'listar_ubicaciones' %}" class="btn btn-back">Volver</a>
+    </form>
+</div>
+{% endblock %}

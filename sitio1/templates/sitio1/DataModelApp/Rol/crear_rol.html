@@ -1,0 +1,550 @@
+{% extends 'sitio1/base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    :root {
+        --primary: #4F46E5;
+        --primary-dark: #4338CA;
+        --secondary: #10B981;
+        --bg-light: #F9FAFB;
+        --bg-card: #FFFFFF;
+        --text-dark: #1F2937;
+        --text-muted: #6B7280;
+        --border: #E5E7EB;
+        --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+
+    .rol-container {
+        max-width: 1000px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+
+    .rol-header {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        border-radius: 16px;
+        padding: 2rem;
+        color: white;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow-lg);
+    }
+
+    .rol-header h1 {
+        margin: 0;
+        font-size: 2rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .rol-card {
+        background: var(--bg-card);
+        border-radius: 12px;
+        padding: 2.5rem;
+        box-shadow: var(--shadow-lg);
+        border: 1px solid var(--border);
+    }
+
+    .form-section {
+        margin-bottom: 2rem;
+    }
+
+    .form-section-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid var(--bg-light);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .form-section-title i {
+        color: var(--primary);
+        font-size: 1.5rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: var(--text-dark);
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.875rem 1rem;
+        border: 2px solid var(--border);
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: white;
+        font-family: inherit;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        background: white;
+    }
+
+    textarea.form-control {
+        resize: vertical;
+        min-height: 100px;
+        line-height: 1.5;
+    }
+
+    .permisos-container {
+        background: var(--bg-light);
+        border-radius: 12px;
+        padding: 1.5rem;
+    }
+
+    .permisos-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid var(--border);
+    }
+
+    .permisos-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--text-dark);
+    }
+
+    .select-all-btn {
+        padding: 0.5rem 1rem;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .select-all-btn:hover {
+        background: var(--primary-dark);
+        transform: translateY(-1px);
+    }
+
+    .modelo-group {
+        background: white;
+        border-radius: 8px;
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+        border: 1px solid var(--border);
+        transition: all 0.3s ease;
+    }
+
+    .modelo-group:hover {
+        box-shadow: var(--shadow);
+        transform: translateY(-2px);
+    }
+
+    .modelo-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .modelo-name {
+        font-weight: 700;
+        font-size: 1rem;
+        color: var(--text-dark);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .modelo-name i {
+        color: var(--primary);
+    }
+
+    .select-modelo-btn {
+        padding: 0.375rem 0.75rem;
+        background: var(--bg-light);
+        border: 1px solid var(--border);
+        color: var(--text-dark);
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .select-modelo-btn:hover {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+    }
+
+    .permisos-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 0.75rem;
+    }
+
+    .permiso-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem;
+        background: var(--bg-light);
+        border-radius: 6px;
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+
+    .permiso-item:hover {
+        background: rgba(79, 70, 229, 0.1);
+    }
+
+    .permiso-item input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+        accent-color: var(--primary);
+    }
+
+    .permiso-item label {
+        cursor: pointer;
+        margin: 0;
+        font-size: 0.875rem;
+        color: var(--text-dark);
+        font-weight: 500;
+        flex: 1;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 2px solid var(--bg-light);
+    }
+
+    .btn {
+        flex: 1;
+        padding: 1rem 2rem;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        text-decoration: none;
+        font-size: 1rem;
+    }
+
+    .btn-primary {
+        background: var(--primary);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: var(--primary-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(79, 70, 229, 0.4);
+    }
+
+    .btn-secondary {
+        background: var(--bg-light);
+        color: var(--text-dark);
+        border: 2px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+        background: var(--border);
+    }
+
+    @media (max-width: 768px) {
+        .permisos-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .form-actions {
+            flex-direction: column;
+        }
+    }
+</style>
+
+<div class="rol-container">
+    <div class="rol-header">
+        <h1>
+            <i class="fas fa-user-shield"></i>
+            {{ accion|default:"Crear" }} Rol
+        </h1>
+    </div>
+
+    <div class="rol-card">
+        <form method="post" id="rolForm">
+            {% csrf_token %}
+            
+            <div class="form-section">
+                <div class="form-section-title">
+                    <i class="fas fa-info-circle"></i>
+                    Información Básica
+                </div>
+                
+                <div class="form-group">
+                    <label for="id_nombre">Nombre del Rol</label>
+                    <input type="text" name="nombre" id="id_nombre" class="form-control" 
+                           value="{{ form.nombre.value|default:'' }}" required 
+                           placeholder="Ej: Administrador, Vendedor, etc.">
+                    {% if form.nombre.errors %}
+                        <div style="color: #EF4444; margin-top: 0.5rem; font-size: 0.875rem;">
+                            {{ form.nombre.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="id_descripcion">Descripción</label>
+                    <textarea name="descripcion" id="id_descripcion" class="form-control" 
+                              rows="3" placeholder="Describe las responsabilidades de este rol...">{{ form.descripcion.value|default:'' }}</textarea>
+                    {% if form.descripcion.errors %}
+                        <div style="color: #EF4444; margin-top: 0.5rem; font-size: 0.875rem;">
+                            {{ form.descripcion.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="form-section">
+                <div class="form-section-title">
+                    <i class="fas fa-shield-alt"></i>
+                    Permisos del Sistema
+                </div>
+
+                <div class="permisos-container">
+                    <div class="permisos-header">
+                        <div class="permisos-title">
+                            Selecciona los permisos para este rol
+                        </div>
+                        <button type="button" class="select-all-btn" id="btnSelectAll">
+                            <i class="fas fa-check-double"></i> Seleccionar Todos
+                        </button>
+                    </div>
+
+                    <div id="permisosContainer"></div>
+                    
+                    <div id="permisosOriginales" style="display: none;">
+                        {{ form.permisos }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i>
+                    Guardar Rol
+                </button>
+                <a href="{% url 'listar_roles' %}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i>
+                    Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const permisosContainer = document.getElementById('permisosContainer');
+        const permisosOriginales = document.getElementById('permisosOriginales');
+        const checkboxes = permisosOriginales.querySelectorAll('input[type="checkbox"][name="permisos"]');
+        
+        console.log('🔍 Checkboxes encontrados:', checkboxes.length);
+        
+        if (checkboxes.length === 0) {
+            permisosContainer.innerHTML = '<p style="color: #6B7280; text-align: center; padding: 2rem;">⚠️ No hay permisos disponibles</p>';
+            return;
+        }
+        
+        // Agrupar permisos por modelo
+        const permisosPorModelo = {};
+        
+        checkboxes.forEach(checkbox => {
+            // El checkbox está dentro de un label, obtener el texto del label padre
+            const labelElement = checkbox.parentElement;
+            
+            if (labelElement && labelElement.tagName === 'LABEL') {
+                const texto = labelElement.textContent.trim();
+                // Formato: "app | modelo | Can add/change/delete/view modelo"
+                const partes = texto.split('|').map(p => p.trim());
+                
+                let app = 'Otros';
+                let modelo = 'Sin categoría';
+                let accion = texto;
+                
+                if (partes.length >= 3) {
+                    app = partes[0]; // admin, sitio1, auth, etc.
+                    modelo = partes[1]; // categoria, usuario, etc.
+                    accion = partes[2]; // Can add categoria
+                    
+                    // Limpiar la acción para que sea más legible
+                    accion = accion.replace(/^Can\s+/i, '').trim();
+                }
+                
+                // Usar el modelo como clave de agrupación
+                const clave = `${app} - ${modelo}`;
+                
+                if (!permisosPorModelo[clave]) {
+                    permisosPorModelo[clave] = [];
+                }
+                
+                permisosPorModelo[clave].push({
+                    checkbox: checkbox,
+                    accion: accion,
+                    textoOriginal: texto
+                });
+            }
+        });
+        
+        console.log('📦 Modelos encontrados:', Object.keys(permisosPorModelo).length);
+        
+        // Crear la estructura HTML organizada
+        permisosContainer.innerHTML = '';
+        
+        Object.keys(permisosPorModelo).sort().forEach(modelo => {
+            const modeloDiv = document.createElement('div');
+            modeloDiv.className = 'modelo-group';
+            
+            const modeloHeader = document.createElement('div');
+            modeloHeader.className = 'modelo-header';
+            
+            const modeloName = document.createElement('div');
+            modeloName.className = 'modelo-name';
+            modeloName.innerHTML = `<i class="fas fa-database"></i> ${modelo}`;
+            
+            const selectModeloBtn = document.createElement('button');
+            selectModeloBtn.type = 'button';
+            selectModeloBtn.className = 'select-modelo-btn';
+            selectModeloBtn.textContent = 'Seleccionar todo';
+            selectModeloBtn.dataset.modelo = modelo;
+            selectModeloBtn.onclick = function(e) {
+                e.preventDefault();
+                toggleModeloPermisos(modelo);
+            };
+            
+            modeloHeader.appendChild(modeloName);
+            modeloHeader.appendChild(selectModeloBtn);
+            
+            const permisosGrid = document.createElement('div');
+            permisosGrid.className = 'permisos-grid';
+            permisosGrid.dataset.modelo = modelo;
+            
+            permisosPorModelo[modelo].forEach(permiso => {
+                const permisoItem = document.createElement('div');
+                permisoItem.className = 'permiso-item';
+                
+                // Clonar el checkbox original
+                const checkbox = permiso.checkbox.cloneNode(true);
+                checkbox.style.display = 'inline-block';
+                
+                // Mantener sincronizado con el original
+                checkbox.addEventListener('change', function() {
+                    permiso.checkbox.checked = this.checked;
+                });
+                
+                // Si el original está checked, marcar el clon
+                if (permiso.checkbox.checked) {
+                    checkbox.checked = true;
+                }
+                
+                const label = document.createElement('label');
+                label.textContent = permiso.accion;
+                label.setAttribute('for', checkbox.id);
+                label.style.cursor = 'pointer';
+                
+                // Hacer clickeable todo el item
+                permisoItem.onclick = function(e) {
+                    if (e.target !== checkbox && e.target !== label) {
+                        checkbox.checked = !checkbox.checked;
+                        permiso.checkbox.checked = checkbox.checked;
+                    }
+                };
+                
+                permisoItem.appendChild(checkbox);
+                permisoItem.appendChild(label);
+                permisosGrid.appendChild(permisoItem);
+            });
+            
+            modeloDiv.appendChild(modeloHeader);
+            modeloDiv.appendChild(permisosGrid);
+            permisosContainer.appendChild(modeloDiv);
+        });
+        
+        console.log('✅ Permisos organizados correctamente');
+    });
+    
+    // Botón seleccionar todos
+    document.getElementById('btnSelectAll').addEventListener('click', function(e) {
+        e.preventDefault();
+        const checkboxesVisibles = document.querySelectorAll('#permisosContainer input[type="checkbox"]');
+        const checkboxesOriginales = document.querySelectorAll('#permisosOriginales input[type="checkbox"]');
+        const allChecked = Array.from(checkboxesOriginales).every(cb => cb.checked);
+        
+        checkboxesVisibles.forEach((cb, index) => {
+            cb.checked = !allChecked;
+        });
+        
+        checkboxesOriginales.forEach(cb => {
+            cb.checked = !allChecked;
+        });
+        
+        this.innerHTML = allChecked 
+            ? '<i class="fas fa-check-double"></i> Seleccionar Todos'
+            : '<i class="fas fa-times"></i> Deseleccionar Todos';
+    });
+    
+    // Función para seleccionar/deseleccionar permisos de un modelo
+    function toggleModeloPermisos(modelo) {
+        const grid = document.querySelector(`.permisos-grid[data-modelo="${modelo}"]`);
+        const checkboxesVisibles = grid.querySelectorAll('input[type="checkbox"]');
+        const checkboxesOriginales = document.querySelectorAll('#permisosOriginales input[type="checkbox"]');
+        
+        // Obtener los IDs de los checkboxes visibles
+        const idsVisibles = Array.from(checkboxesVisibles).map(cb => cb.id);
+        
+        // Verificar si todos están checked
+        const todosOriginalesChecked = Array.from(checkboxesOriginales)
+            .filter(cb => idsVisibles.includes(cb.id))
+            .every(cb => cb.checked);
+        
+        // Toggle
+        checkboxesVisibles.forEach(cb => {
+            cb.checked = !todosOriginalesChecked;
+        });
+        
+        checkboxesOriginales.forEach(cb => {
+            if (idsVisibles.includes(cb.id)) {
+                cb.checked = !todosOriginalesChecked;
+            }
+        });
+        
+        // Actualizar texto del botón
+        const btn = event.target;
+        btn.textContent = todosOriginalesChecked ? 'Seleccionar todo' : 'Deseleccionar todo';
+    }
+</script>
+{% endblock %}

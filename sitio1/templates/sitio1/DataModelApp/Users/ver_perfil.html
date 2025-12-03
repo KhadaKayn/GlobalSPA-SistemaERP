@@ -1,0 +1,698 @@
+{% extends 'sitio1/base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    :root {
+        --primary: #4F46E5;
+        --primary-dark: #4338CA;
+        --secondary: #10B981;
+        --danger: #EF4444;
+        --warning: #F59E0B;
+        --bg-light: #F9FAFB;
+        --bg-card: #FFFFFF;
+        --text-dark: #1F2937;
+        --text-muted: #6B7280;
+        --border: #E5E7EB;
+        --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+
+    .profile-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+
+    /* Header del perfil */
+    .profile-header {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        border-radius: 16px;
+        padding: 2.5rem;
+        color: white;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow-lg);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .profile-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 300px;
+        height: 300px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+    }
+
+    .profile-header-content {
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .profile-avatar {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        border: 4px solid rgba(255, 255, 255, 0.3);
+        object-fit: cover;
+        background: rgba(255, 255, 255, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        font-weight: bold;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    .profile-info h1 {
+        margin: 0;
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .profile-meta {
+        display: flex;
+        gap: 2rem;
+        margin-top: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .profile-meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(255, 255, 255, 0.15);
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        backdrop-filter: blur(10px);
+    }
+
+    .profile-meta-item i {
+        font-size: 1.2rem;
+    }
+
+    /* Navegación por tabs */
+    .profile-tabs {
+        background: var(--bg-card);
+        border-radius: 12px;
+        padding: 1rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow);
+        display: flex;
+        gap: 0.5rem;
+        overflow-x: auto;
+    }
+
+    .profile-tab {
+        flex: 1;
+        min-width: 150px;
+        padding: 1rem 1.5rem;
+        border: none;
+        background: transparent;
+        color: var(--text-muted);
+        font-weight: 500;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .profile-tab:hover {
+        background: var(--bg-light);
+        color: var(--text-dark);
+    }
+
+    .profile-tab.active {
+        background: var(--primary);
+        color: white;
+        box-shadow: 0 4px 6px rgba(79, 70, 229, 0.3);
+    }
+
+    .profile-tab i {
+        font-size: 1.2rem;
+    }
+
+    /* Contenido de tabs */
+    .tab-content {
+        display: none;
+        animation: fadeIn 0.4s ease;
+    }
+
+    .tab-content.active {
+        display: block;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Cards */
+    .profile-card {
+        background: var(--bg-card);
+        border-radius: 12px;
+        padding: 2rem;
+        margin-bottom: 1.5rem;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+        transition: all 0.3s ease;
+    }
+
+    .profile-card:hover {
+        box-shadow: var(--shadow-lg);
+        transform: translateY(-2px);
+    }
+
+    .profile-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid var(--bg-light);
+    }
+
+    .profile-card-header h3 {
+        margin: 0;
+        font-size: 1.5rem;
+        color: var(--text-dark);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .profile-card-header i {
+        color: var(--primary);
+        font-size: 1.75rem;
+    }
+
+    /* Form styling */
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+        color: var(--text-dark);
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 2px solid var(--border);
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
+
+    /* Botones */
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+    }
+
+    .btn-primary {
+        background: var(--primary);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: var(--primary-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+    }
+
+    .btn-secondary {
+        background: var(--bg-light);
+        color: var(--text-dark);
+        border: 2px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+        background: var(--border);
+    }
+
+    .btn-danger {
+        background: var(--danger);
+        color: white;
+    }
+
+    .btn-danger:hover {
+        background: #DC2626;
+        transform: translateY(-2px);
+    }
+
+    /* Info items */
+    .info-item {
+        display: flex;
+        align-items: center;
+        padding: 1rem;
+        background: var(--bg-light);
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--primary);
+    }
+
+    .info-item-icon {
+        width: 48px;
+        height: 48px;
+        background: white;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 1rem;
+        color: var(--primary);
+        font-size: 1.5rem;
+    }
+
+    .info-item-content {
+        flex: 1;
+    }
+
+    .info-item-label {
+        font-size: 0.875rem;
+        color: var(--text-muted);
+        margin-bottom: 0.25rem;
+    }
+
+    .info-item-value {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text-dark);
+    }
+
+    /* Activity timeline */
+    .activity-timeline {
+        position: relative;
+        padding-left: 2rem;
+    }
+
+    .activity-timeline::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: var(--border);
+    }
+
+    .activity-item {
+        position: relative;
+        padding: 1rem 0;
+        padding-left: 1.5rem;
+    }
+
+    .activity-item::before {
+        content: '';
+        position: absolute;
+        left: -0.5rem;
+        top: 1.5rem;
+        width: 12px;
+        height: 12px;
+        background: var(--primary);
+        border-radius: 50%;
+        border: 3px solid white;
+        box-shadow: 0 0 0 2px var(--primary);
+    }
+
+    .activity-item-date {
+        font-size: 0.875rem;
+        color: var(--text-muted);
+    }
+
+    .activity-item-content {
+        margin-top: 0.5rem;
+        color: var(--text-dark);
+    }
+
+    /* Grid layout */
+    .profile-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+
+    /* Imagen de perfil preview */
+    .image-preview {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin: 1rem 0;
+        border: 4px solid var(--border);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .profile-header-content {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .profile-meta {
+            justify-content: center;
+        }
+
+        .profile-tabs {
+            flex-direction: column;
+        }
+
+        .profile-tab {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="profile-container">
+    <!-- Header del perfil -->
+    <div class="profile-header">
+        <div class="profile-header-content">
+            <div class="profile-avatar">
+                {% if user.usuario.imagen %}
+                    <img src="{{ user.usuario.imagen.url }}" alt="Avatar" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
+                {% else %}
+                    {{ user.username|first|upper }}
+                {% endif %}
+            </div>
+            <div class="profile-info">
+                <h1>{{ user.usuario.nombre_completo|default:user.username }}</h1>
+                <div class="profile-meta">
+                    <div class="profile-meta-item">
+                        <i class="fas fa-user-tag"></i>
+                        <span>{{ user.usuario.rol.nombre }}</span>
+                    </div>
+                    <div class="profile-meta-item">
+                        <i class="fas fa-envelope"></i>
+                        <span>{{ user.email }}</span>
+                    </div>
+                    <div class="profile-meta-item">
+                        <i class="fas fa-calendar"></i>
+                        <span>Desde {{ user.usuario.fecha_ingreso|date:"d/m/Y" }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navegación por tabs -->
+    <div class="profile-tabs">
+        <button class="profile-tab active" data-tab="datos">
+            <i class="fas fa-user"></i>
+            <span>Datos Personales</span>
+        </button>
+        <button class="profile-tab" data-tab="seguridad">
+            <i class="fas fa-lock"></i>
+            <span>Seguridad</span>
+        </button>
+        <button class="profile-tab" data-tab="actividad">
+            <i class="fas fa-history"></i>
+            <span>Actividad</span>
+        </button>
+        <button class="profile-tab" data-tab="preferencias">
+            <i class="fas fa-cog"></i>
+            <span>Preferencias</span>
+        </button>
+    </div>
+
+    <!-- Contenido de Datos Personales -->
+    <div id="datos" class="tab-content active">
+        <div class="profile-card">
+            <div class="profile-card-header">
+                <h3>
+                    <i class="fas fa-id-card"></i>
+                    Información Personal
+                </h3>
+                <a href="{% url 'editar_perfil' %}" class="btn btn-primary">
+                 <i class="fas fa-edit"></i>
+                Editar Perfil
+                </a>
+            </div>
+            
+            <div class="profile-grid">
+                <div class="info-item">
+                    <div class="info-item-icon">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="info-item-content">
+                        <div class="info-item-label">Nombre Completo</div>
+                        <div class="info-item-value">{{ user.usuario.nombre_completo|default:"No especificado" }}</div>
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-item-icon">
+                        <i class="fas fa-at"></i>
+                    </div>
+                    <div class="info-item-content">
+                        <div class="info-item-label">Usuario</div>
+                        <div class="info-item-value">{{ user.username }}</div>
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-item-icon">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <div class="info-item-content">
+                        <div class="info-item-label">Email</div>
+                        <div class="info-item-value">{{ user.email|default:"No especificado" }}</div>
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-item-icon">
+                        <i class="fas fa-phone"></i>
+                    </div>
+                    <div class="info-item-content">
+                        <div class="info-item-label">Teléfono</div>
+                        <div class="info-item-value">{{ user.usuario.telefono|default:"No especificado" }}</div>
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-item-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <div class="info-item-content">
+                        <div class="info-item-label">Rol</div>
+                        <div class="info-item-value">{{ user.usuario.rol.nombre }}</div>
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-item-icon">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <div class="info-item-content">
+                        <div class="info-item-label">Estado</div>
+                        <div class="info-item-value">
+                            {% if user.usuario.estado %}
+                                <span style="color: var(--secondary);">✓ Activo</span>
+                            {% else %}
+                                <span style="color: var(--danger);">✗ Inactivo</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenido de Seguridad -->
+    <div id="seguridad" class="tab-content">
+        <div class="profile-card">
+            <div class="profile-card-header">
+                <h3>
+                    <i class="fas fa-key"></i>
+                    Cambiar Contraseña
+                </h3>
+            </div>
+            
+            <form method="post" action="{% url 'password_change' %}">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label>Contraseña Actual</label>
+                    <input type="password" name="old_password" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Nueva Contraseña</label>
+                    <input type="password" name="new_password1" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Confirmar Nueva Contraseña</label>
+                    <input type="password" name="new_password2" class="form-control" required>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i>
+                    Cambiar Contraseña
+                </button>
+            </form>
+        </div>
+
+        <div class="profile-card">
+            <div class="profile-card-header">
+                <h3>
+                    <i class="fas fa-clock"></i>
+                    Información de Sesión
+                </h3>
+            </div>
+            
+            <div class="info-item">
+                <div class="info-item-icon">
+                    <i class="fas fa-sign-in-alt"></i>
+                </div>
+                <div class="info-item-content">
+                    <div class="info-item-label">Última Conexión</div>
+                    <div class="info-item-value">
+                        {{ user.usuario.ultima_conexion|date:"d/m/Y H:i"|default:"Nunca" }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenido de Actividad -->
+    <div id="actividad" class="tab-content">
+        <div class="profile-card">
+            <div class="profile-card-header">
+                <h3>
+                    <i class="fas fa-list-ul"></i>
+                    Historial de Actividad
+                </h3>
+            </div>
+            
+            <div class="activity-timeline">
+                {% if actividades %}
+                    {% for actividad in actividades %}
+                        <div class="activity-item">
+                            <div class="activity-item-date">
+                                {{ actividad.fecha_hora|date:"d/m/Y - H:i" }}
+                            </div>
+                            <div class="activity-item-content">
+                                <strong>{{ actividad.get_tipo_actividad_display }}</strong>
+                                <br>
+                                <small style="color: var(--text-muted);">{{ actividad.descripcion }}</small>
+                                {% if actividad.ip_address %}
+                                    <br>
+                                    <small style="color: var(--text-muted);">
+                                        <i class="fas fa-map-marker-alt"></i> IP: {{ actividad.ip_address }}
+                                    </small>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div style="text-align: center; padding: 2rem; color: var(--text-muted);">
+                        <i class="fas fa-inbox" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+                        <p>No hay actividad registrada aún</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenido de Preferencias -->
+    <div id="preferencias" class="tab-content">
+        <div class="profile-card">
+            <div class="profile-card-header">
+                <h3>
+                    <i class="fas fa-palette"></i>
+                    Preferencias de Visualización
+                </h3>
+            </div>
+            
+            <div class="form-group">
+                <label>Tema</label>
+                <select class="form-control">
+                    <option>Claro</option>
+                    <option>Oscuro</option>
+                    <option>Automático</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>Idioma</label>
+                <select class="form-control">
+                    <option>Español</option>
+                    <option>English</option>
+                </select>
+            </div>
+
+            <button class="btn btn-primary">
+                <i class="fas fa-save"></i>
+                Guardar Preferencias
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Leer el hash de la URL (#seguridad, #datos, etc.)
+        const hash = window.location.hash.substring(1); // Quita el #
+        
+        if (hash) {
+            // Activar el tab correspondiente
+            document.querySelectorAll('.profile-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            const tabBtn = document.querySelector(`[data-tab="${hash}"]`);
+            const tabContent = document.getElementById(hash);
+            
+            if (tabBtn && tabContent) {
+                tabBtn.classList.add('active');
+                tabContent.classList.add('active');
+            }
+        }
+        
+        // Funcionalidad de cambio de tabs
+        document.querySelectorAll('.profile-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.profile-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                this.classList.add('active');
+                const tabId = this.getAttribute('data-tab');
+                document.getElementById(tabId).classList.add('active');
+                
+                // Actualizar la URL con el hash
+                window.location.hash = tabId;
+            });
+        });
+    });
+</script>
+{% endblock %}

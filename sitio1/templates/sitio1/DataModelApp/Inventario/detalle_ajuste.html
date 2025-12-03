@@ -1,0 +1,253 @@
+{% extends 'sitio1/base.html' %}
+{% load humanize %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2 class="mb-2">
+                <i class="fas fa-file-alt text-primary"></i>
+                Detalle de Ajuste #{{ ajuste.id }}
+            </h2>
+            <p class="text-muted">
+                <i class="fas fa-calendar"></i> {{ ajuste.fecha_hora|date:"d/m/Y H:i" }}
+                | <i class="fas fa-user"></i> {{ ajuste.usuario.get_full_name|default:ajuste.usuario.username }}
+            </p>
+        </div>
+        <div class="col-md-4 text-end">
+            {% if ajuste.finalizado %}
+                <span class="badge bg-success fs-5">
+                    <i class="fas fa-check-circle"></i> Finalizado
+                </span>
+            {% else %}
+                <span class="badge bg-warning fs-5">
+                    <i class="fas fa-clock"></i> Pendiente
+                </span>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Información General -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-info-circle"></i> Información General</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless mb-0">
+                        <tr>
+                            <td><strong>Ubicación:</strong></td>
+                            <td>{{ ajuste.ubicacion.direccion }}{% if ajuste.ubicacion.comuna %}, {{ ajuste.ubicacion.comuna }}{% endif %}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Motivo:</strong></td>
+                            <td>{{ ajuste.motivo }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Realizado por:</strong></td>
+                            <td>{{ ajuste.usuario.get_full_name|default:ajuste.usuario.username }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Fecha y Hora:</strong></td>
+                            <td>{{ ajuste.fecha_hora|date:"d/m/Y H:i:s" }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Estadísticas -->
+        <div class="col-md-4">
+            <div class="card mb-3 border-primary">
+                <div class="card-body text-center">
+                    <h6 class="text-muted">Productos Revisados</h6>
+                    <h2 class="text-primary mb-0">{{ ajuste.productos_revisados }}</h2>
+                </div>
+            </div>
+            <div class="card border-danger">
+                <div class="card-body text-center">
+                    <h6 class="text-muted">Con Diferencias</h6>
+                    <h2 class="text-danger mb-0">{{ ajuste.productos_con_diferencias }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de Detalles -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list"></i> Productos Ajustados
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>#</th>
+                                    <th>SKU</th>
+                                    <th>Producto</th>
+                                    <th>Ubicación Específica</th>
+                                    <th class="text-center">Stock Sistema</th>
+                                    <th class="text-center">Stock Físico</th>
+                                    <th class="text-center">Diferencia</th>
+                                    <th class="text-center">Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for detalle in detalles %}
+                                <tr {% if detalle.diferencia != 0 %}class="table-{% if detalle.diferencia > 0 %}success{% else %}danger{% endif %}"{% endif %}>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td><code>{{ detalle.producto.sku|default:"N/A" }}</code></td>
+                                    <td>
+                                        <strong>{{ detalle.producto.nombre }}</strong><br>
+                                        <small class="text-muted">{{ detalle.producto.categoria.nombre }}</small>
+                                    </td>
+                                    <td>
+                                        {% if detalle.ubicacion_especifica %}
+                                            <span class="badge bg-secondary">{{ detalle.ubicacion_especifica }}</span>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-info">{{ detalle.stock_sistema }}</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-primary">{{ detalle.stock_fisico }}</span>
+                                    </td>
+                                    <td class="text-center">
+                                        {% if detalle.diferencia > 0 %}
+                                            <span class="badge bg-success">+{{ detalle.diferencia }}</span>
+                                        {% elif detalle.diferencia < 0 %}
+                                            <span class="badge bg-danger">{{ detalle.diferencia }}</span>
+                                        {% else %}
+                                            <span class="badge bg-warning">0</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        {% if detalle.diferencia == 0 %}
+                                            <i class="fas fa-check-circle text-success" title="Sin diferencia"></i>
+                                        {% else %}
+                                            <i class="fas fa-exclamation-triangle text-warning" title="Con diferencia"></i>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="8" class="text-center py-4 text-muted">
+                                        No hay detalles registrados
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot class="table-secondary">
+                                <tr>
+                                    <td colspan="8">
+                                        <strong>Total de productos revisados:</strong> {{ ajuste.productos_revisados }}
+                                        | <strong>Productos con diferencias:</strong> {{ ajuste.productos_con_diferencias }}
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Acciones -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <a href="{% url 'historial_ajustes' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Volver al Historial
+                            </a>
+                        </div>
+                        <div>
+                            {% if not ajuste.finalizado %}
+                                <a href="{% url 'inventario_fisico_confirmar' ajuste.id %}" 
+                                   class="btn btn-success btn-lg"
+                                   onclick="return confirm('¿Confirmar y aplicar este ajuste al inventario? Esta acción actualizará el stock de todos los productos.')">
+                                    <i class="fas fa-check"></i> Confirmar y Aplicar Ajuste
+                                </a>
+                            {% else %}
+                                <button class="btn btn-outline-secondary" disabled>
+                                    <i class="fas fa-check-circle"></i> Ajuste Ya Aplicado
+                                </button>
+                            {% endif %}
+                            
+                            <button class="btn btn-outline-primary" onclick="window.print()">
+                                <i class="fas fa-print"></i> Imprimir
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resumen de Diferencias -->
+    {% if ajuste.productos_con_diferencias > 0 %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card border-warning">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">
+                        <i class="fas fa-exclamation-triangle"></i> 
+                        Resumen de Diferencias
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-success">Sobrantes (+):</h6>
+                            <ul class="list-unstyled">
+                                {% for detalle in detalles %}
+                                    {% if detalle.diferencia > 0 %}
+                                    <li>
+                                        <i class="fas fa-plus-circle text-success"></i>
+                                        <strong>{{ detalle.producto.nombre }}</strong>: 
+                                        +{{ detalle.diferencia }} unidades
+                                    </li>
+                                    {% endif %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-danger">Faltantes (-):</h6>
+                            <ul class="list-unstyled">
+                                {% for detalle in detalles %}
+                                    {% if detalle.diferencia < 0 %}
+                                    <li>
+                                        <i class="fas fa-minus-circle text-danger"></i>
+                                        <strong>{{ detalle.producto.nombre }}</strong>: 
+                                        {{ detalle.diferencia }} unidades
+                                    </li>
+                                    {% endif %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+@media print {
+    .btn, .card-header { display: none !important; }
+}
+</style>
+{% endblock %}

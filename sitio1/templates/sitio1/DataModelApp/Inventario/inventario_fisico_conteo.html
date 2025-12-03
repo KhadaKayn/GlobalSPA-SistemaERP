@@ -1,0 +1,323 @@
+{% extends 'sitio1/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2 class="mb-2">
+                <i class="fas fa-clipboard-check text-primary"></i>
+                Conteo de Inventario Físico
+            </h2>
+            <p class="text-muted">
+                <i class="fas fa-map-marker-alt"></i> 
+                <strong>{{ ubicacion.direccion }}</strong>
+                {% if ubicacion.comuna %} - {{ ubicacion.comuna }}{% endif %}
+            </p>
+        </div>
+        <div class="col-md-4 text-end">
+            <div class="card bg-light">
+                <div class="card-body py-2">
+                    <small class="text-muted">Productos Contados</small>
+                    <h3 class="mb-0" id="contador-productos">0 / {{ productos.count }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Formulario de Motivo -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <label for="motivo" class="form-label">
+                                <i class="fas fa-edit"></i> Motivo del Ajuste *
+                            </label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="motivo" 
+                                   placeholder="Ej: Auditoría mensual, Inventario anual, Verificación trimestral"
+                                   required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label d-block">&nbsp;</label>
+                            <button type="button" class="btn btn-success w-100" onclick="guardarAjuste()">
+                                <i class="fas fa-save"></i> Guardar y Revisar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Buscador de Productos -->
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <div class="input-group">
+                <span class="input-group-text">
+                    <i class="fas fa-search"></i>
+                </span>
+                <input type="text" 
+                       class="form-control" 
+                       id="buscador" 
+                       placeholder="Buscar producto por nombre o SKU..."
+                       onkeyup="filtrarProductos()">
+            </div>
+        </div>
+        <div class="col-md-6 text-end">
+            <button class="btn btn-outline-primary" onclick="marcarTodosComoSistema()">
+                <i class="fas fa-check-double"></i> Usar Stock Sistema en Todos
+            </button>
+        </div>
+    </div>
+
+    <!-- Tabla de Productos -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0" id="tabla-productos">
+                            <thead class="table-light sticky-top">
+                                <tr>
+                                    <th style="width: 5%">#</th>
+                                    <th style="width: 10%">SKU</th>
+                                    <th style="width: 30%">Producto</th>
+                                    <th style="width: 10%">Stock Sistema</th>
+                                    <th style="width: 15%">Stock Físico</th>
+                                    <th style="width: 15%">Ubicación</th>
+                                    <th style="width: 10%">Diferencia</th>
+                                    <th style="width: 5%">Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for producto in productos %}
+                                <tr class="producto-row" data-nombre="{{ producto.nombre|lower }}" data-sku="{{ producto.sku|lower }}">
+                                    <td>{{ forloop.counter }}</td>
+                                    <td>
+                                        <code>{{ producto.sku|default:"N/A" }}</code>
+                                    </td>
+                                    <td>
+                                        <strong>{{ producto.nombre }}</strong><br>
+                                        <small class="text-muted">{{ producto.categoria.nombre }}</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info stock-sistema" data-producto="{{ producto.id }}">
+                                            {{ producto.stock_actual }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <input type="number" 
+                                               class="form-control form-control-sm stock-fisico" 
+                                               data-producto="{{ producto.id }}"
+                                               data-stock-sistema="{{ producto.stock_actual }}"
+                                               placeholder="Contar..."
+                                               min="0"
+                                               onchange="calcularDiferencia({{ producto.id }})">
+                                    </td>
+                                    <td>
+                                        <input type="text" 
+                                               class="form-control form-control-sm ubicacion-especifica" 
+                                               data-producto="{{ producto.id }}"
+                                               placeholder="Ej: A1-B2">
+                                    </td>
+                                    <td>
+                                        <span class="diferencia-badge" data-producto="{{ producto.id }}">
+                                            <span class="badge bg-secondary">-</span>
+                                        </span>
+                                    </td>
+                                    <td class="text-center">
+                                        <i class="fas fa-circle estado-icon text-muted" 
+                                           data-producto="{{ producto.id }}"></i>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="8" class="text-center py-4">
+                                        <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+                                        <p class="text-muted">No hay productos en esta ubicación</p>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botones de Acción -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between">
+                <a href="{% url 'inventario_fisico_inicio' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Volver
+                </a>
+                <button type="button" class="btn btn-success btn-lg" onclick="guardarAjuste()">
+                    <i class="fas fa-save"></i> Guardar y Revisar Diferencias
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let productosContados = 0;
+const totalProductos = {{ productos.count }};
+const ubicacionId = {{ ubicacion.id }};
+
+function calcularDiferencia(productoId) {
+    const inputFisico = document.querySelector(`.stock-fisico[data-producto="${productoId}"]`);
+    const stockSistema = parseInt(inputFisico.dataset.stockSistema);
+    const stockFisico = parseInt(inputFisico.value) || 0;
+    const diferencia = stockFisico - stockSistema;
+    
+    // Actualizar badge de diferencia
+    const badgeContainer = document.querySelector(`.diferencia-badge[data-producto="${productoId}"]`);
+    let badgeClass = 'bg-secondary';
+    let signo = '';
+    
+    if (inputFisico.value !== '') {
+        if (diferencia > 0) {
+            badgeClass = 'bg-success';
+            signo = '+';
+        } else if (diferencia < 0) {
+            badgeClass = 'bg-danger';
+        } else {
+            badgeClass = 'bg-warning';
+        }
+        
+        badgeContainer.innerHTML = `<span class="badge ${badgeClass}">${signo}${diferencia}</span>`;
+        
+        // Actualizar icono de estado
+        const estadoIcon = document.querySelector(`.estado-icon[data-producto="${productoId}"]`);
+        estadoIcon.className = 'fas fa-check-circle estado-icon text-success';
+        
+        // Actualizar contador
+        actualizarContador();
+    }
+}
+
+function actualizarContador() {
+    const inputsLlenos = document.querySelectorAll('.stock-fisico');
+    productosContados = 0;
+    
+    inputsLlenos.forEach(input => {
+        if (input.value !== '') {
+            productosContados++;
+        }
+    });
+    
+    document.getElementById('contador-productos').textContent = 
+        `${productosContados} / ${totalProductos}`;
+}
+
+function marcarTodosComoSistema() {
+    if (!confirm('¿Usar el stock del sistema para todos los productos? Esto sobrescribirá valores ya ingresados.')) {
+        return;
+    }
+    
+    document.querySelectorAll('.stock-fisico').forEach(input => {
+        input.value = input.dataset.stockSistema;
+        calcularDiferencia(input.dataset.producto);
+    });
+}
+
+function filtrarProductos() {
+    const busqueda = document.getElementById('buscador').value.toLowerCase();
+    const filas = document.querySelectorAll('.producto-row');
+    
+    filas.forEach(fila => {
+        const nombre = fila.dataset.nombre;
+        const sku = fila.dataset.sku;
+        
+        if (nombre.includes(busqueda) || sku.includes(busqueda)) {
+            fila.style.display = '';
+        } else {
+            fila.style.display = 'none';
+        }
+    });
+}
+
+function guardarAjuste() {
+    const motivo = document.getElementById('motivo').value.trim();
+    
+    if (!motivo) {
+        alert('⚠️ Debes ingresar un motivo para el ajuste');
+        document.getElementById('motivo').focus();
+        return;
+    }
+    
+    // Recopilar productos contados
+    const productos = [];
+    document.querySelectorAll('.stock-fisico').forEach(input => {
+        if (input.value !== '') {
+            productos.push({
+                producto_id: input.dataset.producto,
+                stock_fisico: parseInt(input.value),
+                ubicacion_especifica: document.querySelector(
+                    `.ubicacion-especifica[data-producto="${input.dataset.producto}"]`
+                ).value
+            });
+        }
+    });
+    
+    if (productos.length === 0) {
+        alert('⚠️ Debes contar al menos un producto');
+        return;
+    }
+    
+    // Confirmar
+    if (!confirm(`¿Guardar ajuste con ${productos.length} productos contados?`)) {
+        return;
+    }
+    
+    // Enviar datos
+    fetch("{% url 'inventario_fisico_guardar' %}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+            ubicacion_id: ubicacionId,
+            motivo: motivo,
+            productos: productos
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('✅ ' + data.mensaje);
+            window.location.href = `/sitio1/historial-ajustes/`;
+        } else {
+            alert('❌ Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        alert('❌ Error al guardar: ' + error);
+    });
+}
+</script>
+
+<style>
+.sticky-top {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: white;
+}
+
+.estado-icon {
+    font-size: 1.2rem;
+}
+
+.table td {
+    vertical-align: middle;
+}
+</style>
+{% endblock %}
