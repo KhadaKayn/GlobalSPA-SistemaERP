@@ -426,88 +426,6 @@ class LogOrdenCompraIA(models.Model):
     def __str__(self):
         return f"{self.orden.numero_orden} - {self.accion} - {self.fecha}"
     
-class AjusteInventario(models.Model):
-    """
-    Registro de ajustes de inventario físico
-    """
-    ubicacion = models.ForeignKey(Ubicacion, on_delete=models.PROTECT)
-    usuario = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
-    fecha_hora = models.DateTimeField(auto_now_add=True)
-    motivo = models.TextField(help_text="Razón del ajuste de inventario")
-    
-    # Estadísticas del ajuste
-    productos_revisados = models.IntegerField(default=0)
-    productos_con_diferencias = models.IntegerField(default=0)
-    
-    # Estado
-    finalizado = models.BooleanField(default=False)
-    
-    class Meta:
-        ordering = ['-fecha_hora']
-        verbose_name = "Ajuste de Inventario"
-        verbose_name_plural = "Ajustes de Inventario"
-    
-    def __str__(self):
-        return f"Ajuste #{self.id} - {self.ubicacion.direccion} - {self.fecha_hora.strftime('%d/%m/%Y')}"
-    
-    def calcular_estadisticas(self):
-        """Recalcula las estadísticas del ajuste"""
-        detalles = self.detalles.all()
-        self.productos_revisados = detalles.count()
-        self.productos_con_diferencias = detalles.filter(
-            diferencia__gt=0
-        ).count() + detalles.filter(diferencia__lt=0).count()
-        self.save()
-
-
-class DetalleAjusteInventario(models.Model):
-    """
-    Detalle de cada producto ajustado en el inventario
-    """
-    ajuste = models.ForeignKey(AjusteInventario, on_delete=models.CASCADE, related_name='detalles')
-    producto = models.ForeignKey(Productos, on_delete=models.CASCADE)
-    
-    # Stocks
-    stock_sistema = models.IntegerField(help_text="Stock en el sistema antes del ajuste")
-    stock_fisico = models.IntegerField(help_text="Stock contado físicamente")
-    diferencia = models.IntegerField(help_text="Diferencia (físico - sistema)")
-    
-    # Ubicación específica dentro del almacén
-    ubicacion_especifica = models.CharField(max_length=100, blank=True, null=True, 
-                                           help_text="Ej: A1-B2")
-    
-    class Meta:
-        ordering = ['producto__nombre']
-        verbose_name = "Detalle Ajuste Inventario"
-        verbose_name_plural = "Detalles Ajuste Inventario"
-    
-    def __str__(self):
-        return f"{self.producto.nombre} - Dif: {self.diferencia}"
-    
-    def save(self, *args, **kwargs):
-        # Calcular diferencia automáticamente
-        self.diferencia = self.stock_fisico - self.stock_sistema
-        
-        # Guardar el detalle
-        super().save(*args, **kwargs)
-        
-        # Si la diferencia no es 0, crear movimiento y actualizar stock
-        if self.diferencia != 0 and self.ajuste.finalizado:
-            # Crear movimiento de inventario
-            MovimientoInventario.objects.create(
-                producto=self.producto,
-                tipo_movimiento='ajuste',
-                cantidad=abs(self.diferencia),
-                usuario=self.ajuste.usuario,
-                motivo=f"Ajuste inventario físico #{self.ajuste.id}: {self.ajuste.motivo}"
-            )
-            
-            # Actualizar stock del producto
-            self.producto.stock_actual = self.stock_fisico
-            self.producto.save()
-        
-        # Recalcular estadísticas del ajuste
-        self.ajuste.calcular_estadisticas()
 
 class LogAuditoria(models.Model):
     """
@@ -603,15 +521,25 @@ class LogAuditoria(models.Model):
 # MODELOS PARA AJUSTES DE INVENTARIO FÍSICO
 # =====================================================
 
+# =====================================================
+# MODELOS PARA AJUSTES DE INVENTARIO FÍSICO
+# =====================================================
+
 class AjusteInventario(models.Model):
-    """Registro de auditoría/conteo físico de inventario"""
+    """
+    Registro de ajustes de inventario físico
+    """
     ubicacion = models.ForeignKey(Ubicacion, on_delete=models.PROTECT)
     usuario = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     fecha_hora = models.DateTimeField(auto_now_add=True)
-    motivo = models.CharField(max_length=255)
-    finalizado = models.BooleanField(default=False)
+    motivo = models.TextField(help_text="Razón del ajuste de inventario")
+    
+    # Estadísticas del ajuste
     productos_revisados = models.IntegerField(default=0)
     productos_con_diferencias = models.IntegerField(default=0)
+    
+    # Estado
+    finalizado = models.BooleanField(default=False)
     
     class Meta:
         ordering = ['-fecha_hora']
@@ -619,24 +547,69 @@ class AjusteInventario(models.Model):
         verbose_name_plural = "Ajustes de Inventario"
     
     def __str__(self):
-        return f"Ajuste #{self.id} - {self.ubicacion} - {self.fecha_hora.date()}"
+        return f"Ajuste #{self.id} - {self.ubicacion.direccion} - {self.fecha_hora.strftime('%d/%m/%Y')}"
+    
+    def calcular_estadisticas(self):
+        """Recalcula las estadísticas del ajuste"""
+        detalles = self.detalles.all()
+        self.productos_revisados = detalles.count()
+        self.productos_con_diferencias = (
+            detalles.filter(diferencia__gt=0).count() +
+            detalles.filter(diferencia__lt=0).count()
+        )
+        self.save()
 
 
 class DetalleAjusteInventario(models.Model):
-    """Detalle de cada producto en un ajuste"""
+    """
+    Detalle de cada producto ajustado en el inventario
+    """
     ajuste = models.ForeignKey(AjusteInventario, on_delete=models.CASCADE, related_name='detalles')
-    producto = models.ForeignKey(Productos, on_delete=models.PROTECT)
-    stock_sistema = models.IntegerField()  # Stock que tenía el sistema
-    stock_fisico = models.IntegerField()   # Stock contado físicamente
-    ubicacion_especifica = models.CharField(max_length=100, blank=True, null=True)  # Ej: "Pasillo A-3"
+    producto = models.ForeignKey(Productos, on_delete=models.CASCADE)
+    
+    # Stocks
+    stock_sistema = models.IntegerField(help_text="Stock en el sistema antes del ajuste")
+    stock_fisico = models.IntegerField(help_text="Stock contado físicamente")
+    diferencia = models.IntegerField(help_text="Diferencia (físico - sistema)")
+    
+    # Ubicación específica dentro del almacén
+    ubicacion_especifica = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        help_text="Ej: A1-B2"
+    )
     
     class Meta:
+        ordering = ['producto__nombre']
+        verbose_name = "Detalle Ajuste Inventario"
+        verbose_name_plural = "Detalles Ajuste Inventario"
+        # 🔹 Tomado de la segunda versión
         unique_together = ('ajuste', 'producto')
     
-    @property
-    def diferencia(self):
-        """Calcula la diferencia entre físico y sistema"""
-        return self.stock_fisico - self.stock_sistema
-    
     def __str__(self):
-        return f"{self.producto.nombre} - Sistema: {self.stock_sistema} | Físico: {self.stock_fisico}"
+        return f"{self.producto.nombre} - Dif: {self.diferencia}"
+    
+    def save(self, *args, **kwargs):
+        # Calcular diferencia automáticamente
+        self.diferencia = self.stock_fisico - self.stock_sistema
+        
+        # Guardar el detalle
+        super().save(*args, **kwargs)
+        
+        # Si la diferencia no es 0 y el ajuste está finalizado, crear movimiento y actualizar stock
+        if self.diferencia != 0 and self.ajuste.finalizado:
+            MovimientoInventario.objects.create(
+                producto=self.producto,
+                tipo_movimiento='ajuste',
+                cantidad=abs(self.diferencia),
+                usuario=self.ajuste.usuario,
+                motivo=f"Ajuste inventario físico #{self.ajuste.id}: {self.ajuste.motivo}"
+            )
+            
+            # Actualizar stock del producto
+            self.producto.stock_actual = self.stock_fisico
+            self.producto.save()
+        
+        # Recalcular estadísticas del ajuste
+        self.ajuste.calcular_estadisticas()
