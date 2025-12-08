@@ -223,12 +223,18 @@
             grid-template-columns: 1fr;
         }
     }
+    .section-icon.admin img,
+    .section-icon-img {
+        width: 32px;   /* ajusta a gusto */
+        height: 32px;  /* o auto para respetar proporción */
+        object-fit: contain;
+    }
 </style>
 
 <div class="gestion-container">
     <!-- Header -->
     <div class="gestion-header">
-        <h1>🎛️ Panel de Control</h1>
+        <h1>🎛️ Panel de Gestión</h1>
         <p>Gestiona todos los aspectos de tu sistema desde aquí</p>
     </div>
 
@@ -237,16 +243,19 @@
         <div class="section">
             <div class="section-header">
                 <div class="section-icon admin">
-                    <i class="fas fa-cogs"></i>
+                    <img src="{% static 'Img/icons/gestion.png' %}" alt="Gestión del sistema"
+                    class="section-icon-img">
                 </div>
-                <div class="section-title-group">
-                    <h2>Gestión del Sistema</h2>
-                    <p>Administración completa y configuración general</p>
-                </div>
-            </div>
+            <div class="section-title-group">
+        <h2>Gestión del Sistema</h2>
+        <p>Administración completa y configuración general</p>
+    </div>
+</div>
             <div class="cards-grid">
                 <a href="{% url 'lista_usuarios' %}" class="option-card">
                     <div class="option-card-icon primary">
+                        <img src="{% static 'Img/icons/users.png' %}" alt="Gestión del sistema"
+                    class="section-icon-img">
                         <i class="fas fa-users"></i>
                     </div>
                     <h3>Usuarios</h3>
@@ -255,6 +264,8 @@
 
                 <a href="{% url 'listar_roles' %}" class="option-card">
                     <div class="option-card-icon primary">
+                        <img src="{% static 'Img/icons/roles.png' %}" alt="Gestión del sistema"
+                    class="section-icon-img">
                         <i class="fas fa-user-shield"></i>
                     </div>
                     <h3>Roles y Permisos</h3>
@@ -263,6 +274,8 @@
 
                 <a href="{%url 'auditoria_logs'%}" class="option-card">
                     <div class="option-card-icon info">
+                        <img src="{% static 'Img/icons/logs.png' %}" alt="Gestión del sistema"
+                    class="section-icon-img">
                         <i class="fas fa-history"></i>
                     </div>
                     <h3>Auditoría y Logs</h3>
@@ -272,6 +285,8 @@
 
                 <a href="#" class="option-card">
                     <div class="option-card-icon info">
+                        <img src="{% static 'Img/icons/configurations.png' %}" alt="Gestión del sistema"
+                    class="section-icon-img">
                         <i class="fas fa-sliders-h"></i>
                     </div>
                     <h3>Configuración</h3>
@@ -285,6 +300,8 @@
         <div class="section">
             <div class="section-header">
                 <div class="section-icon analytics">
+                    <img src="{% static 'Img/icons/analytics.png' %}" alt="Analitica y Reportes"
+                    class="section-icon-img">
                     <i class="fas fa-chart-line"></i>
                 </div>
                 <div class="section-title-group">
@@ -297,6 +314,8 @@
 
                 <a href="{%url 'dashboard'%}" class="option-card">
                     <div class="option-card-icon info">
+                        <img src="{% static 'Img/icons/reports.png' %}" alt="Analitica y Reportes"
+                    class="section-icon-img">
                         <i class="fas fa-chart-bar"></i>
                     </div>
                     <h3>Reportes de Ventas</h3>
@@ -306,6 +325,8 @@
 
                 <a href="{%url 'dashboard_ia'%}" class="option-card">
                     <div class="option-card-icon info">
+                        <img src="{% static 'Img/icons/ia.png' %}" alt="Analitica y Reportes"
+                    class="section-icon-img">
                         <i class="fas fa-brain"></i>
                     </div>
                     <h3>Predicciones IA</h3>
@@ -315,6 +336,8 @@
 
                 <a href="#" class="option-card">
                     <div class="option-card-icon info">
+                        <img src="{% static 'Img/icons/export.png' %}" alt="Analitica y Reportes"
+                    class="section-icon-img">
                         <i class="fas fa-file-export"></i>
                     </div>
                     <h3>Exportar Datos</h3>
@@ -328,6 +351,8 @@
         <div class="section" id="inventario">
             <div class="section-header">
                 <div class="section-icon inventory">
+                    <img src="{% static 'Img/icons/inventory.png' %}" alt="Inventario"
+                    class="section-icon-img">
                     <i class="fas fa-boxes"></i>
                 </div>
                 <div class="section-title-group">
@@ -338,6 +363,8 @@
             <div class="cards-grid">
                 <a href="{% url 'productos' %}" class="option-card">
                     <div class="option-card-icon success">
+                        <img src="{% static 'Img/icons/products.png' %}" alt="Inventario"
+                    class="section-icon-img">
                         <i class="fas fa-box"></i>
                     </div>
                     <h3>Productos</h3>
@@ -346,6 +373,8 @@
 
                 <a href="{% url 'listar_categorias' %}" class="option-card">
                     <div class="option-card-icon success">
+                        <img src="{% static 'Img/icons/category.png' %}" alt="Inventario"
+                    class="section-icon-img">
                         <i class="fas fa-tags"></i>
                     </div>
                     <h3>Categorías</h3>
@@ -354,6 +383,8 @@
 
                 <a href="{% url 'listar_proveedores' %}" class="option-card">
                     <div class="option-card-icon success">
+                        <img src="{% static 'Img/icons/suppliers.png' %}" alt="Inventario"
+                    class="section-icon-img">
                         <i class="fas fa-truck"></i>
                     </div>
                     <h3>Proveedores</h3>
@@ -362,6 +393,8 @@
 
                 <a href="{% url 'listar_ubicaciones' %}" class="option-card">
                     <div class="option-card-icon success">
+                        <img src="{% static 'Img/icons/locations.png' %}" alt="Inventario"
+                    class="section-icon-img">
                         <i class="fas fa-map-marker-alt"></i>
                     </div>
                     <h3>Ubicaciones</h3>
@@ -370,6 +403,8 @@
 
                 <a href="{%url 'historial_movimientos'%}" class="option-card">
                     <div class="option-card-icon warning">
+                        <img src="{% static 'Img/icons/movements.png' %}" alt="Inventario"
+                    class="section-icon-img">
                         <i class="fas fa-exchange-alt"></i>
                     </div>
                     <h3>Movimientos</h3>
@@ -379,6 +414,8 @@
 
                 <a href="{% url 'dashboard_ia'%}" class="option-card">
                     <div class="option-card-icon danger">
+                        <img src="{% static 'Img/icons/alerts.png' %}" alt="Inventario"
+                    class="section-icon-img">
                         <i class="fas fa-exclamation-triangle"></i>
                     </div>
                     <h3>Alertas de Stock</h3>
@@ -392,6 +429,8 @@
         <div class="section">
             <div class="section-header">
                 <div class="section-icon pos">
+                    <img src="{% static 'Img/icons/pays.png' %}" alt="Ventas"
+                    class="section-icon-img">
                     <i class="fas fa-cash-register"></i>
                 </div>
                 <div class="section-title-group">
@@ -402,6 +441,8 @@
             <div class="cards-grid">
                 <a href="{%url 'venta'%}" class="option-card">
                     <div class="option-card-icon warning">
+                        <img src="{% static 'Img/icons/sales.png' %}" alt="Ventas"
+                    class="section-icon-img">
                         <i class="fas fa-shopping-cart"></i>
                     </div>
                     <h3>Venta Rápida</h3>
@@ -411,6 +452,8 @@
 
                 <a href="{%url 'productos'%}" class="option-card">
                     <div class="option-card-icon warning">
+                        <img src="{% static 'Img/icons/search.png' %}" alt="Ventas"
+                    class="section-icon-img">
                         <i class="fas fa-search-dollar"></i>
                     </div>
                     <h3>Búsqueda Inteligente</h3>
@@ -420,6 +463,8 @@
 
                 <a href="{%url 'listar_ventas'%}" class="option-card">
                     <div class="option-card-icon warning">
+                        <img src="{% static 'Img/icons/history.png' %}" alt="Ventas"
+                    class="section-icon-img">
                         <i class="fas fa-list-alt"></i>
                     </div>
                     <h3>Historial Ventas</h3>
@@ -432,6 +477,8 @@
         <div class="section">
             <div class="section-header">
                 <div class="section-icon control">
+                    <img src="{% static 'Img/icons/control.png' %}" alt="Control de Stock"
+                    class="section-icon-img">
                     <i class="fas fa-clipboard-check"></i>
                 </div>
                 <div class="section-title-group">
@@ -442,6 +489,8 @@
             <div class="cards-grid">
                 <a href="{%url 'inventario_fisico_inicio'%}" class="option-card">
                     <div class="option-card-icon danger">
+                        <img src="{% static 'Img/icons/check.png' %}" alt="Ventas"
+                    class="section-icon-img">
                         <i class="fas fa-clipboard-list"></i>
                     </div>
                     <h3>Inventario Físico</h3>
@@ -451,6 +500,8 @@
 
                 <a href="{%url 'historial_ajustes'%}" class="option-card">
                     <div class="option-card-icon danger">
+                        <img src="{% static 'Img/icons/logstock.png' %}" alt="Ventas"
+                    class="section-icon-img">
                         <i class="fas fa-history"></i>
                     </div>
                     <h3>Historial de Ajustes</h3>
@@ -459,6 +510,8 @@
                 </a>
                 <a href="#" class="option-card">
                     <div class="option-card-icon danger">
+                        <img src="{% static 'Img/icons/scan.png' %}" alt="Ventas"
+                    class="section-icon-img">
                         <i class="fas fa-barcode"></i>
                     </div>
                     <h3>Escaneo de Productos</h3>
@@ -473,6 +526,8 @@
         <div class="section">
             <div class="section-header">
                 <div class="section-icon profile">
+                    <img src="{% static 'Img/icons/user.png' %}" alt="Perfil"
+                    class="section-icon-img">
                     <i class="fas fa-user-circle"></i>
                 </div>
                 <div class="section-title-group">
@@ -483,6 +538,8 @@
             <div class="cards-grid">
                 <a href="{% url 'ver_perfil' %}" class="option-card">
                     <div class="option-card-icon purple">
+                        <img src="{% static 'Img/icons/update.png' %}" alt="Perfil"
+                    class="section-icon-img">
                         <i class="fas fa-id-card"></i>
                     </div>
                     <h3>Datos Personales</h3>
@@ -491,6 +548,8 @@
 
                 <a href="{% url 'editar_perfil' %}" class="option-card">
                     <div class="option-card-icon purple">
+                        <img src="{% static 'Img/icons/userconfig.png' %}" alt="Perfil"
+                    class="section-icon-img">
                         <i class="fas fa-user-edit"></i>
                     </div>
                     <h3>Editar Perfil</h3>
@@ -499,6 +558,8 @@
 
                 <a href="{% url 'ver_perfil' %}#seguridad" class="option-card">
     <div class="option-card-icon purple">
+        <img src="{% static 'Img/icons/password.png' %}" alt="Perfil"
+                    class="section-icon-img">
         <i class="fas fa-key"></i>
     </div>
     <h3>Cambiar Contraseña</h3>
@@ -507,6 +568,8 @@
 
                 <a href="{% url 'ver_perfil' %}#actividad" class="option-card">
                     <div class="option-card-icon purple">
+                        <img src="{% static 'Img/icons/userhistory.png' %}" alt="Perfil"
+                    class="section-icon-img">
                         <i class="fas fa-history"></i>
                     </div>
                     <h3>Historial Actividad</h3>

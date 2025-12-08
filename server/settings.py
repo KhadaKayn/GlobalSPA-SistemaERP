@@ -25,7 +25,14 @@ SECRET_KEY = 'django-insecure-600=m8fgpo64!3@l4!9kk!vvk^9a7@26clsv7yte#*k1i(fs_1
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    "127.0.0.1",
+    "localhost",
+    "testserver",        # por si usas tests
+    "167.88.45.23",      # IP del VPS
+    "globalspa.cloud",
+    "www.globalspa.cloud",
+]
 
 LOGIN_REDIRECT_URL = '/home/'
 LOGOUT_REDIRECT_URL = '/'
