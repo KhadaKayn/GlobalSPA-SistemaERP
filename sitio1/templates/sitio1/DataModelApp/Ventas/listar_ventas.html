@@ -1,7 +1,7 @@
 {% extends 'sitio1/base.html' %}
 {% load static %}
 {% load humanize %}
-
+{% load tz %}
 {% block content %}
 <style>
   .ventas-header {
@@ -178,14 +178,16 @@
     <div class="stat-card">
       <i class="bi bi-clock-history stat-icon text-warning"></i>
       <div class="stat-label">Última Venta</div>
+
       <div class="stat-value text-warning">
-        {% if ultima_venta %}
-          {{ ultima_venta.fecha|timesince }}
-        {% else %}
-          -
-        {% endif %}
-      </div>
-      <small class="text-muted">hace</small>
+  {% if ultima_venta %}
+    {{ ultima_venta.fecha|localtime|timesince }}
+  {% else %}
+    -
+  {% endif %}
+</div>
+<small class="text-muted">hace</small>
+
     </div>
   </div>
 
@@ -510,8 +512,8 @@ function imprimirTicket(ventaId) {
 }
 
 // Ver detalle completo (modal o nueva página)
-function verDetalleCompleto(ventaId) {
-  window.location.href = `/sitio1/venta/${ventaId}/detalle/`;
+function verDetalleCompleto(id) {
+  window.location.href = `/sitio1/ventas/${id}/`;
 }
 
 // Exportar a Excel

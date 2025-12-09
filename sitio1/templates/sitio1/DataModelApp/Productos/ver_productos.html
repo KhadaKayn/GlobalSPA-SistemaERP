@@ -392,22 +392,36 @@
                             {% endif %}
                         </td>
 
-                        <td>{{ p.ubicacion.nombre|default:"—" }}</td>
+                        <td>{{ p.ubicacion|default:"—" }}</td>
 
                         <td>{{ p.proveedor.nombre|default:"—" }}</td>
 
                         <td>
-                            <div class="action-buttons">
-                                <a href="{% url 'editar_productos' p.id %}" class="btn btn-primary">✏️ Editar</a>
+    <div class="action-buttons">
+        <a href="{% url 'editar_productos' p.id %}" class="btn btn-primary">✏️ Editar</a>
 
-                                <form action="{% url 'eliminar_productos' p.id %}" method="post"
-                                      class="d-inline delete-form"
-                                      style="margin:0">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-danger">🗑️ Eliminar</button>
-                                </form>
-                            </div>
-                        </td>
+        {% if p.activo %}
+            <!-- Desactivar -->
+            
+        {% else %}
+            <!-- Reactivar -->
+            <form action="{% url 'reactivar_producto' p.id %}" method="post"
+                  class="d-inline reactivar-form"
+                  style="margin:0">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-success">🔓 Reactivar</button>
+            </form><div style="height: 4px;"></div>
+        {% endif %}
+
+        <!-- Eliminar definitivo -->
+        <form action="{% url 'eliminar_productos' p.id %}" method="post"
+      class="d-inline delete-form"
+      style="margin-top: 4px;">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">🗑️ Eliminar</button>
+</form>
+    </div>
+</td>
 
                     </tr>
                     {% endfor %}
@@ -435,7 +449,7 @@
 </div>
 
 <script>
-/* --- Tu JS sin cambios. Lo mantengo intacto para no romper nada. --- */
+
 document.addEventListener('DOMContentLoaded', function() {
 
     const searchInput = document.getElementById('searchInput');
@@ -533,6 +547,20 @@ document.addEventListener('DOMContentLoaded', function() {
         form.addEventListener("submit", e => {
             e.preventDefault();
             if (confirm("¿Eliminar este producto?")) form.submit();
+        });
+    });
+
+    document.querySelectorAll('.desactivar-form').forEach(form => {
+        form.addEventListener("submit", e => {
+            e.preventDefault();
+            if (confirm("¿Desactivar este producto? No aparecerá en nuevas ventas.")) form.submit();
+        });
+    });
+
+    document.querySelectorAll('.reactivar-form').forEach(form => {
+        form.addEventListener("submit", e => {
+            e.preventDefault();
+            if (confirm("¿Reactivar este producto?")) form.submit();
         });
     });
 

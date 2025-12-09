@@ -380,6 +380,12 @@
             flex: 1;
         }
     }
+    .section-icon.admin img,
+    .section-icon-img {
+        width: 50px;   /* ajusta a gusto */
+        height: 50px;  /* o auto para respetar proporción */
+        object-fit: contain;
+    }
 </style>
 
 <div class="usuarios-container">
@@ -387,6 +393,8 @@
     <div class="usuarios-header">
         <div class="usuarios-header-title">
             <div class="icon-wrapper">
+                <img src="{% static 'Img/icons/user.png' %}" alt="Perfil"
+                    class="section-icon-img">
                 <i class="fas fa-users"></i>
             </div>
             <div>

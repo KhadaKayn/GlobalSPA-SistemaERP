@@ -5,6 +5,7 @@ from django.contrib.auth.models import User, Permission
 from django.forms import inlineformset_factory
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Submit, Row, Column
+from django.core.exceptions import ValidationError
 
 
 # ----------------------
@@ -146,6 +147,20 @@ class ProductosForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        # Evitar negativos a nivel de widget (HTML)
+        numeric_fields = [
+            'precio_unitario',
+            'costo_unitario',
+            'stock_actual',
+            'stock_minimo',
+            'stock_maximo',
+        ]
+        for fname in numeric_fields:
+            if fname in self.fields:
+                self.fields[fname].widget.attrs['min'] = '0'
+                self.fields[fname].widget.attrs['step'] = '0.01' if 'precio' in fname or 'costo' in fname else '1'
+
         self.helper = FormHelper()
         self.helper.form_method = 'post'
         self.helper.layout = Layout(
@@ -169,6 +184,63 @@ class ProductosForm(forms.ModelForm):
             'activo',
             Submit('submit', 'Guardar', css_class='btn btn-primary mt-3')
         )
+
+    # --------- Validaciones de negocio ---------
+
+    def clean_precio_unitario(self):
+        precio = self.cleaned_data.get('precio_unitario')
+        if precio is not None and precio < 0:
+            raise ValidationError("El precio unitario no puede ser negativo.")
+        return precio
+
+    def clean_costo_unitario(self):
+        costo = self.cleaned_data.get('costo_unitario')
+        if costo is not None and costo < 0:
+            raise ValidationError("El costo unitario no puede ser negativo.")
+        return costo
+
+    def clean_stock_actual(self):
+        stock = self.cleaned_data.get('stock_actual')
+        if stock is not None and stock < 0:
+            raise ValidationError("El stock actual no puede ser negativo.")
+        return stock
+
+    def clean_stock_minimo(self):
+        minimo = self.cleaned_data.get('stock_minimo')
+        if minimo is not None and minimo < 0:
+            raise ValidationError("El stock mínimo no puede ser negativo.")
+        return minimo
+
+    def clean_stock_maximo(self):
+        maximo = self.cleaned_data.get('stock_maximo')
+        if maximo is not None and maximo < 0:
+            raise ValidationError("El stock máximo no puede ser negativo.")
+        return maximo
+
+    def clean_sku(self):
+        sku = self.cleaned_data.get('sku')
+        if not sku:
+            return sku  # permites SKU vacío, si eso está OK en tu lógica
+
+        qs = Productos.objects.filter(sku__iexact=sku)
+        # Si estás editando, excluye el propio producto
+        if self.instance and self.instance.pk:
+            qs = qs.exclude(pk=self.instance.pk)
+
+        if qs.exists():
+            raise ValidationError("Ya existe un producto con este SKU.")
+
+        return sku
+    
+    def clean(self):
+        cleaned = super().clean()
+        minimo = cleaned.get('stock_minimo')
+        maximo = cleaned.get('stock_maximo')
+
+        if minimo is not None and maximo is not None and maximo < minimo:
+            raise ValidationError("El stock máximo no puede ser menor que el stock mínimo.")
+
+        return cleaned
 
 
 # formulacios para los demas modelos

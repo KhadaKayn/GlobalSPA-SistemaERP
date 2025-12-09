@@ -288,6 +288,12 @@
             width: 100%;
         }
     }
+    .section-icon.admin img,
+    .section-icon-img {
+        width: 40px;   /* ajusta a gusto */
+        height: 40px;  /* o auto para respetar proporción */
+        object-fit: contain;
+    }
 </style>
 
 <div class="categorias-container">
@@ -295,6 +301,8 @@
     <div class="categorias-header">
         <div class="categorias-header-title">
             <div class="icon-wrapper">
+                <img src="{% static 'Img/icons/category.png' %}" alt="Inventario"
+                    class="section-icon-img">
                 <i class="fas fa-tags"></i>
             </div>
             <div>

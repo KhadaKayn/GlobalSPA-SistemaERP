@@ -199,10 +199,25 @@
                                 {% endif %}
                             </td>
                             <td class="text-center">
-                                <span class="badge {% if mov.tipo_movimiento == 'entrada' %}bg-success{% else %}bg-danger{% endif %} fs-6">
-                                    {% if mov.tipo_movimiento == 'entrada' %}+{% else %}-{% endif %}{{ mov.cantidad }}
-                                </span>
-                            </td>
+    {% if mov.tipo_movimiento == 'entrada' %}
+        <span class="badge bg-success fs-6">
+            +{{ mov.cantidad }}
+        </span>
+    {% elif mov.tipo_movimiento == 'salida' or mov.tipo_movimiento == 'venta_forzada' %}
+        <span class="badge bg-danger fs-6">
+            -{{ mov.cantidad }}
+        </span>
+    {% elif mov.tipo_movimiento == 'ajuste' %}
+        {# aquí puedes decidir cómo mostrarlo, por ahora lo dejo neutro #}
+        <span class="badge bg-warning fs-6">
+            {{ mov.cantidad }}
+        </span>
+    {% else %}
+        <span class="badge bg-secondary fs-6">
+            {{ mov.cantidad }}
+        </span>
+    {% endif %}
+</td>
                             <td>
                                 <i class="fas fa-user text-muted"></i>
                                 {{ mov.usuario.username|default:"Sistema" }}

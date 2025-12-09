@@ -21,7 +21,9 @@ from django.db import models
 
 from django.contrib.auth.signals import user_logged_in, user_logged_out
 from django.dispatch import receiver
+from django.forms.models import model_to_dict
 
+from django.core.serializers.json import DjangoJSONEncoder
 
 
 from django.views.decorators.http import require_http_methods
@@ -53,7 +55,13 @@ from rest_framework import status
 from .serializers import VentaSerializer    
 from rest_framework import serializers
 
-
+def model_to_json_safe(instance):
+    """
+    Convierte un modelo a dict compatible con JSON (Decimal, fechas, etc.)
+    """
+    data = model_to_dict(instance)
+    # DjangoJSONEncoder convierte Decimal, date, datetime, etc.
+    return json.loads(json.dumps(data, cls=DjangoJSONEncoder))
 
 
 
@@ -153,13 +161,9 @@ def home(request):
 
 
 
-#                                                       VISTAS 
 # ==============================
 # CRUD PARA PRODUCTOS
 # ==============================
-
-            #listado de productos
-
 
 @login_required
 def lista_productos(request):
@@ -185,6 +189,18 @@ def ingresar_productos(request):
         form = ProductosForm(request.POST, request.FILES)
         if form.is_valid():
             producto = form.save()
+
+            # Log de creación (JSON-safe)
+            LogAuditoria.crear_log(
+                usuario=request.user,
+                tabla='productos',
+                tipo_accion='create',
+                id_registro=producto.id,
+                descripcion=f'Se creó el producto "{producto.nombre}"',
+                valores_nuevo=model_to_json_safe(producto),
+                request=request,
+            )
+
             messages.success(request, f'✓ Producto "{producto.nombre}" creado exitosamente.')
             return redirect("productos")
         else:
@@ -201,9 +217,25 @@ def editar_productos(request, productos_id):
     producto = get_object_or_404(Productos, id=productos_id)
     
     if request.method == "POST":
+        # Estado antes del cambio (JSON-safe)
+        datos_antes = model_to_json_safe(producto)
+
         form = ProductosForm(request.POST, request.FILES, instance=producto)
         if form.is_valid():
             producto = form.save()
+
+            # Log de actualización (JSON-safe)
+            LogAuditoria.crear_log(
+                usuario=request.user,
+                tabla='productos',
+                tipo_accion='update',
+                id_registro=producto.id,
+                descripcion=f'Se actualizó el producto "{producto.nombre}"',
+                valores_anterior=datos_antes,
+                valores_nuevo=model_to_json_safe(producto),
+                request=request,
+            )
+
             messages.success(request, f'✓ Producto "{producto.nombre}" actualizado correctamente.')
             return redirect("productos")
         else:
@@ -224,32 +256,63 @@ def eliminar_productos(request, productos_id):
     
     if request.method == 'POST':
         forzar_eliminacion = request.POST.get('forzar_eliminacion') == 'true'
+        # Snapshot antes (JSON-safe)
+        datos_antes = model_to_json_safe(producto)
+        nombre = producto.nombre
         
         try:
-            nombre = producto.nombre
             producto.delete()
+
+            # Log de eliminación normal
+            LogAuditoria.crear_log(
+                usuario=request.user,
+                tabla='productos',
+                tipo_accion='delete',
+                id_registro=productos_id,
+                descripcion=f'Se eliminó el producto "{nombre}"',
+                valores_anterior=datos_antes,
+                valores_nuevo=None,
+                request=request,
+            )
+
             messages.success(request, f'✓ Producto "{nombre}" eliminado correctamente.')
             return redirect('productos')
             
         except ProtectedError as e:
-            ventas_asociadas = e.protected_objects
+            ventas_asociadas = list(e.protected_objects)
             
             if forzar_eliminacion:
                 # Eliminar ventas y producto
                 for venta in ventas_asociadas:
                     venta.delete()
                 producto.delete()
+
+                # Log de eliminación forzada
+                LogAuditoria.crear_log(
+                    usuario=request.user,
+                    tabla='productos',
+                    tipo_accion='delete',
+                    id_registro=productos_id,
+                    descripcion=(
+                        f'Se eliminó el producto "{nombre}" junto a '
+                        f'{len(ventas_asociadas)} ventas asociadas (eliminación forzada).'
+                    ),
+                    valores_anterior=datos_antes,
+                    valores_nuevo=None,
+                    request=request,
+                )
+
                 messages.warning(
                     request, 
                     f'⚠️ Producto "{nombre}" y sus {len(ventas_asociadas)} ventas asociadas han sido eliminados.'
                 )
                 return redirect('productos')
             else:
-                # Mostrar modal de confirmación
+                # Mostrar modal de confirmación (sin log todavía)
                 return render(request, 'sitio1/DataModelApp/Productos/confirmar_eliminacion.html', {
                     'producto': producto,
                     'ventas_count': len(ventas_asociadas),
-                    'ventas': list(ventas_asociadas)[:10]  # Máximo 10 para mostrar
+                    'ventas': ventas_asociadas[:10]  # Máximo 10 para mostrar
                 })
     
     return redirect('productos')
@@ -259,8 +322,26 @@ def eliminar_productos(request, productos_id):
 def desactivar_producto(request, productos_id):
     """Desactiva un producto en lugar de eliminarlo"""
     producto = get_object_or_404(Productos, id=productos_id)
+    
+    datos_antes = model_to_json_safe(producto)
+
     producto.activo = False
     producto.save()
+
+    datos_despues = model_to_json_safe(producto)
+
+    # Log de desactivación
+    LogAuditoria.crear_log(
+        usuario=request.user,
+        tabla='productos',
+        tipo_accion='update',
+        id_registro=producto.id,
+        descripcion=f'Se desactivó el producto "{producto.nombre}"',
+        valores_anterior=datos_antes,
+        valores_nuevo=datos_despues,
+        request=request,
+    )
+
     messages.info(request, f'🔒 Producto "{producto.nombre}" desactivado. No aparecerá en nuevas ventas.')
     return redirect('productos')
 
@@ -269,11 +350,30 @@ def desactivar_producto(request, productos_id):
 def reactivar_producto(request, productos_id):
     """Reactiva un producto desactivado"""
     producto = get_object_or_404(Productos, id=productos_id)
+
+    # Snapshot ANTES (JSON-safe)
+    datos_antes = model_to_json_safe(producto)
+
     producto.activo = True
     producto.save()
-    messages.success(request, f'✓ Producto "{producto.nombre}" reactivado correctamente.')
-    return redirect('productos')
 
+    # Snapshot DESPUÉS (JSON-safe)
+    datos_despues = model_to_json_safe(producto)
+
+    # Log de reactivación
+    LogAuditoria.crear_log(
+        usuario=request.user,
+        tabla='productos',
+        tipo_accion='update',
+        id_registro=producto.id,
+        descripcion=f'Se reactivó el producto \"{producto.nombre}\"',
+        valores_anterior=datos_antes,
+        valores_nuevo=datos_despues,
+        request=request,
+    )
+
+    messages.success(request, f'✓ Producto \"{producto.nombre}\" reactivado correctamente.')
+    return redirect('productos')
 
 def verificar_ventas_producto(request, productos_id):
     """API para verificar si un producto tiene ventas (AJAX)"""
@@ -632,7 +732,7 @@ def listar_ventas(request):
     ticket_promedio = todas_ventas.aggregate(promedio=Avg('total'))['promedio'] or 0
     
     # Última venta
-    ultima_venta = todas_ventas.first()
+    ultima_venta = Venta.objects.order_by('-fecha').first()
     
     # ==========================================
     # PAGINACIÓN
@@ -1050,11 +1150,16 @@ def dashboard_view(request):
     total_productos_activos = Productos.objects.filter(activo=True).count()
     productos_sin_stock = Productos.objects.filter(stock_actual=0, activo=True).count()
     
-    # Stock bajo
-    productos_stock_bajo = Productos.objects.filter(
-        stock_actual__lte=F('stock_minimo'),
-        activo=True
-    ).count()
+    # Stock bajo (query base)
+    productos_stock_bajo_qs = Productos.objects.filter(
+        activo=True,
+        stock_minimo__gt=0,                 # sólo productos con mínimo definido
+        stock_actual__lte=F('stock_minimo')
+    ).order_by('stock_actual')
+
+    # Conteo total para la tarjeta
+    productos_stock_bajo = productos_stock_bajo_qs.count()
+
     
     # Fechas
     hace_30_dias = timezone.now() - timedelta(days=30)
@@ -1228,13 +1333,9 @@ def dashboard_view(request):
     # ALERTAS Y RECOMENDACIONES
     # ==========================================
     
-    # Productos críticos (stock bajo)
-    productos_criticos = list(
-        Productos.objects.filter(
-            stock_actual__lte=F('stock_minimo'),
-            activo=True
-        ).order_by('stock_actual')[:10]
-    )
+    
+   # Productos críticos (mismas reglas que la tarjeta)
+    productos_criticos = list(productos_stock_bajo_qs[:10])  # top 10 para el panel
     
     # Productos sin movimiento (más de 30 días)
     productos_sin_movimiento = []
@@ -1412,14 +1513,18 @@ def dashboard_ia_view(request):
             modelo, mensaje, metricas = entrenar_modelo_demanda()
             
             if modelo:
-                messages.success(request, mensaje)
+                messages.success(request, mensaje, extra_tags="ia")
                 context['metricas_entrenamiento'] = metricas
             else:
-                messages.warning(request, mensaje)
+                messages.warning(request, mensaje, extra_tags="ia")
                 
         except Exception as e:
             logger.error(f"Error en entrenamiento: {e}")
-            messages.error(request, f"Error al entrenar modelo: {str(e)}")
+            messages.error(
+                request,
+                f"Error al entrenar modelo: {str(e)}",
+                extra_tags="ia"
+            )
     
     # ==========================================
     # EVALUAR MODELO ACTUAL
@@ -1429,12 +1534,24 @@ def dashboard_ia_view(request):
             metricas_eval = evaluar_modelo_actual()
             if 'error' not in metricas_eval:
                 context['metricas_evaluacion'] = metricas_eval
-                messages.info(request, f"Modelo evaluado. RMSE: {metricas_eval['rmse']:.2f}")
+                messages.info(
+                    request,
+                    f"Modelo evaluado. RMSE: {metricas_eval['rmse']:.2f}",
+                    extra_tags="ia"
+                )
             else:
-                messages.warning(request, metricas_eval['error'])
+                messages.warning(
+                    request,
+                    metricas_eval['error'],
+                    extra_tags="ia"
+                )
         except Exception as e:
             logger.error(f"Error en evaluación: {e}")
-            messages.error(request, f"Error al evaluar: {str(e)}")
+            messages.error(
+                request,
+                f"Error al evaluar: {str(e)}",
+                extra_tags="ia"
+            )
     
     # ==========================================
     # GENERAR ALERTAS IA
@@ -1454,7 +1571,11 @@ def dashboard_ia_view(request):
     except Exception as e:
         logger.error(f"Error generando alertas: {e}")
         context['error_alertas'] = str(e)
-        messages.error(request, f"Error al generar alertas: {str(e)}")
+        messages.error(
+            request,
+            f"Error al generar alertas: {str(e)}",
+            extra_tags="ia"
+        )
     
     # ==========================================
     # CLASIFICACIÓN DE PRODUCTOS (CLUSTERING)
@@ -1474,12 +1595,20 @@ def dashboard_ia_view(request):
             }
         else:
             context['error_clasificacion'] = error
-            messages.warning(request, error)
+            messages.warning(
+                request,
+                error,
+                extra_tags="ia"
+            )
             
     except Exception as e:
         logger.error(f"Error en clustering: {e}")
         context['error_clasificacion'] = str(e)
-        messages.error(request, f"Error al clasificar productos: {str(e)}")
+        messages.error(
+            request,
+            f"Error al clasificar productos: {str(e)}",
+            extra_tags="ia"
+        )
     
     # ==========================================
     # ESTADÍSTICAS DEL MODELO
@@ -1508,7 +1637,7 @@ def prediccion_producto_view(request, producto_id):
         resultado, error = predecir_demanda_producto(producto_id, dias_adelante=14)
         
         if error:
-            messages.error(request, error)
+            messages.error(request, error, extra_tags="ia")
             resultado = None
         else:
             # Calcular métricas adicionales
@@ -1551,7 +1680,11 @@ def prediccion_producto_view(request, producto_id):
         
     except Exception as e:
         logger.error(f"Error en predicción de producto {producto_id}: {e}")
-        messages.error(request, f"Error inesperado: {str(e)}")
+        messages.error(
+            request,
+            f"Error inesperado: {str(e)}",
+            extra_tags="ia"
+        )
         context = {
             'resultado': None,
             'labels_prediccion': [],

@@ -11,3 +11,6 @@ numpy==1.24.3
 prophet==1.1.4
 matplotlib
 seaborn
+postgresql 
+postgresql-contrib
+psycopg[binary]

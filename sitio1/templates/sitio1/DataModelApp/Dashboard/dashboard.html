@@ -237,7 +237,7 @@
                 {% if productos_criticos %}
                 <h6 class="text-danger mb-3">⚠️ Stock Crítico ({{ productos_criticos|length }})</h6>
                 <ul class="list-unstyled">
-                    {% for prod in productos_criticos|slice:":5" %}
+                    {% for prod in productos_criticos %}
                     <li class="mb-2 pb-2 border-bottom">
                         <strong>{{ prod.nombre }}</strong><br>
                         <small class="text-danger">Stock: {{ prod.stock_actual }} (mín: {{ prod.stock_minimo }})</small>

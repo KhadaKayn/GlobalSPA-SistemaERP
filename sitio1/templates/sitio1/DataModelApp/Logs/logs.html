@@ -646,82 +646,84 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for log in logs %}
-                    <tr>
-                        <td class="log-timestamp">
-                            <i class="fas fa-calendar"></i>
-                            {{ log.fecha_hora|date:"d/m/Y H:i:s" }}
-                        </td>
-                        <td>
-                            <div class="log-user">
-                                <td>
-    <div class="log-user">
-        <div class="log-user-avatar">
-            {% if log.usuario %}
-                {{ log.usuario.username|first|upper }}
-            {% else %}
-                <i class="fas fa-user-slash"></i>
-            {% endif %}
-        </div>
-        <span>
-            {% if log.usuario %}
-                {{ log.usuario.get_full_name|default:log.usuario.username }}
-            {% else %}
-                Sistema / Usuario no disponible
-            {% endif %}
-        </span>
-    </div>
-</td>
+    {% for log in logs %}
+    <tr>
+        <td class="log-timestamp">
+            <i class="fas fa-calendar"></i>
+            {{ log.fecha_hora|date:"d/m/Y H:i:s" }}
+        </td>
 
-                            </div>
-                        </td>
-                        <td>
-                            <span class="log-tabla">{{ log.get_nombre_tabla }}</span>
-                        </td>
-                        <td>
-                            <div class="log-tipo">
-                                {% if log.tipo_accion == 'create' %}
-                                    <span class="log-tipo-badge create">
-                                        <i class="fas fa-plus"></i> Creado
-                                    </span>
-                                {% elif log.tipo_accion == 'update' %}
-                                    <span class="log-tipo-badge update">
-                                        <i class="fas fa-edit"></i> Modificado
-                                    </span>
-                                {% elif log.tipo_accion == 'delete' %}
-                                    <span class="log-tipo-badge delete">
-                                        <i class="fas fa-trash"></i> Eliminado
-                                    </span>
-                                {% else %}
-                                    <span class="log-tipo-badge view">
-                                        <i class="fas fa-eye"></i> Visualizado
-                                    </span>
-                                {% endif %}
-                            </div>
-                        </td>
-                        <td style="font-weight: 600; color: var(--primary);">
-                            #{{ log.id_registro }}
-                        </td>
-                        <td>
-                            <div class="log-detalles" title="{{ log.descripcion }}">
-                                {{ log.descripcion|truncatewords:10 }}
-                            </div>
-                        </td>
-                        <td>
-                            <div class="log-ip" title="{{ log.ip_address }}">
-                                <i class="fas fa-globe"></i> {{ log.ip_address }}
-                            </div>
-                        </td>
-                        <td>
-                            <div class="log-actions">
-                                <button class="btn-small" onclick="verDetalle({{ log.id }})">
-                                    <i class="fas fa-eye"></i> Ver
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
+        <td>
+            <div class="log-user">
+                <div class="log-user-avatar">
+                    {% if log.usuario %}
+                        {{ log.usuario.username|first|upper }}
+                    {% else %}
+                        <i class="fas fa-user-slash"></i>
+                    {% endif %}
+                </div>
+                <span>
+                    {% if log.usuario %}
+                        {{ log.usuario.get_full_name|default:log.usuario.username }}
+                    {% else %}
+                        Sistema / Usuario no disponible
+                    {% endif %}
+                </span>
+            </div>
+        </td>
+
+        <td>
+            <span class="log-tabla">{{ log.get_nombre_tabla }}</span>
+        </td>
+
+        <td>
+            <div class="log-tipo">
+                {% if log.tipo_accion == 'create' %}
+                    <span class="log-tipo-badge create">
+                        <i class="fas fa-plus"></i> Creado
+                    </span>
+                {% elif log.tipo_accion == 'update' %}
+                    <span class="log-tipo-badge update">
+                        <i class="fas fa-edit"></i> Modificado
+                    </span>
+                {% elif log.tipo_accion == 'delete' %}
+                    <span class="log-tipo-badge delete">
+                        <i class="fas fa-trash"></i> Eliminado
+                    </span>
+                {% else %}
+                    <span class="log-tipo-badge view">
+                        <i class="fas fa-eye"></i> Visualizado
+                    </span>
+                {% endif %}
+            </div>
+        </td>
+
+        <td style="font-weight: 600; color: var(--primary);">
+            #{{ log.id_registro }}
+        </td>
+
+        <td>
+            <div class="log-detalles" title="{{ log.descripcion }}">
+                {{ log.descripcion|truncatewords:10 }}
+            </div>
+        </td>
+
+        <td>
+            <div class="log-ip" title="{{ log.ip_address|default:'Sin IP' }}">
+                <i class="fas fa-globe"></i> {{ log.ip_address|default:'Sin IP' }}
+            </div>
+        </td>
+
+        <td>
+            <div class="log-actions">
+                <button class="btn-small" onclick="verDetalle({{ log.id }})">
+                    <i class="fas fa-eye"></i> Ver
+                </button>
+            </div>
+        </td>
+    </tr>
+    {% endfor %}
+</tbody>
             </table>
         </div>
 

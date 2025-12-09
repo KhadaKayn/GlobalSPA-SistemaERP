@@ -349,6 +349,12 @@
             flex: 1;
         }
     }
+    .section-icon.admin img,
+    .section-icon-img {
+        width: 35px;   /* ajusta a gusto */
+        height: 35px;  /* o auto para respetar proporción */
+        object-fit: contain;
+    }
 </style>
 
 <div class="roles-container">
@@ -356,6 +362,8 @@
     <div class="roles-header">
         <div class="roles-header-title">
             <div class="icon-wrapper">
+                <img src="{% static 'Img/icons/roles.png' %}" alt="Gestión del sistema"
+                    class="section-icon-img">
                 <i class="fas fa-user-shield"></i>
             </div>
             <div>
