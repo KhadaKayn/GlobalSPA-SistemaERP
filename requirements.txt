@@ -1,16 +1,14 @@
-django == 4.2.5
+django==4.2.5
 pillow
 django-admin-interface
 django-crispy-forms
 crispy-bootstrap5
 mysqlclient
 djangorestframework
-scikit-learn==1.3.0
-pandas==2.0.3
-numpy==1.24.3
-prophet==1.1.4
+scikit-learn
+pandas
+numpy
+prophet
 matplotlib
 seaborn
-postgresql 
-postgresql-contrib
 psycopg[binary]
