@@ -173,7 +173,7 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 
 
-EMAIL_HOST_USER = 'contacto@globalspa.cloud'  
+EMAIL_HOST_USER = ''  
 EMAIL_HOST_PASSWORD = 'Valepesa1010.'      
 
 # Email remitente por defecto
