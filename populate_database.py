@@ -3,7 +3,11 @@ Script para poblar la base de datos con datos realistas
 Ejecutar: python manage.py shell < populate_database.py
 O copiar y pegar en: python manage.py shell
 """
+import django
+import os
 
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'server.settings')
+django.setup()
 from django.contrib.auth.models import User, Permission
 from sitio1.models import (
     Rol, Proveedor, Categoria, Ubicacion, Productos, 
